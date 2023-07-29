@@ -16,7 +16,8 @@ SIZE = 35
 SCENE_SYSTEM = 'METRIC'
 SCENE_UNITS = 'MILLIMETERS'
 QR_CODE_THICKNESS = .5
-SVG_FILE_PATHS = 'C:\\Users\\qfran\\Desktop\\gimp\\qrcode_script.svg'
+FILE_NAME = 'qrcode_script_new.svg'
+SVG_FILE_PATHS = 'C:\\Users\\qfran\\Desktop\\gimp\\'+FILE_NAME
 GRID_SIZE = 1
 
 def clear_console():
@@ -71,8 +72,7 @@ def import_image():
     bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
 
     # Select curves
-    collection_name = "qrcode_script.svg" # specify your collection name here
-    collection = bpy.data.collections[collection_name]
+    collection = bpy.data.collections[FILE_NAME]
     for obj in collection.objects:
         if obj.type == 'CURVE':
             obj.select_set(True)
@@ -84,8 +84,6 @@ def import_image():
 
     # Join selected curves
     bpy.ops.object.join()
-
-
 
 def debug_object(obj):
     
@@ -155,8 +153,9 @@ def main():
         print("  Solidify")
         bpy.ops.object.modifier_add(type='SOLIDIFY')
         bpy.context.object.modifiers["Solidify"].thickness = QR_CODE_THICKNESS 
+        bpy.context.object.modifiers["Solidify"].offset = QR_CODE_THICKNESS 
         bpy.ops.object.modifier_apply(modifier="Solidify")
-        
+
         print("  Add Baseplate")
         bpy.ops.mesh.primitive_plane_add(size=1, enter_editmode=False, location=(0, 0, 0))
         baseplate_obj = bpy.context.active_object
@@ -166,7 +165,6 @@ def main():
         # solidify the baseplate
         bpy.ops.object.modifier_add(type='SOLIDIFY')
         bpy.context.object.modifiers["Solidify"].thickness = QR_CODE_THICKNESS
-        bpy.context.object.modifiers["Solidify"].offset = QR_CODE_THICKNESS 
         bpy.ops.object.modifier_apply(modifier="Solidify")
 
         # select all objects and join them
@@ -180,60 +178,6 @@ def main():
         # Rename the joined object
         bpy.context.active_object.name = 'qr_code'
 
-        # add cuts 
-        """
-        
-        # Set mode to Object
-        bpy.ops.object.mode_set(mode='OBJECT')
-
-        # Get the current active object
-        obj = bpy.context.active_object
-
-        # Get mesh data from the object
-        mesh = obj.data
-
-        # Create a BMesh instance
-        bm = bmesh.new()
-
-        # Load the mesh data into the BMesh instance
-        bm.from_mesh(mesh)
-
-        # Set all faces to unselected
-        for f in bm.faces:
-            f.select = False
-
-        # Initialize a variable to keep track of the highest face
-        highest_face = None
-        highest_z = -float("inf")
-
-        # Loop through each face
-        for f in bm.faces:
-            # Get the average z-coordinate of the face
-            face_z = sum([v.co.z for v in f.verts])/len(f.verts)
-            
-            # If this face is higher than the current highest, update our tracking variables
-            if face_z > highest_z:
-                highest_z = face_z
-                highest_face = f
-
-        # Set the highest face to selected
-        if highest_face is not None:
-            highest_face.select = True
-
-        # Update the mesh data with the new selection
-        bm.to_mesh(mesh)
-        bm.free()
-
-        # Set mode to Edit
-        bpy.ops.object.mode_set(mode='EDIT')
-
-        # Apply the bevel
-        bpy.ops.mesh.bevel(offset_type='OFFSET', offset=0.5)  # Adjust the offset parameter as needed
-
-        # Switch back to object mode
-        bpy.ops.object.mode_set(mode='OBJECT')
-        
-        """
 
     # Get the active object
     obj = bpy.context.active_object
@@ -270,13 +214,10 @@ def main():
     # Join all selected objects (this will join them into the active object)
     bpy.ops.object.join()
 
-
-
-
-
     # Make sure the desired mesh object is selected/active
     obj = bpy.context.active_object
 
+    """
     # Switch to Edit Mode (if in Object Mode)
     bpy.ops.object.mode_set(mode='EDIT')
 
@@ -290,10 +231,7 @@ def main():
     # Rotate along the X or Y axis
     bpy.ops.transform.rotate(value=angle_x, orient_axis='X')
     # bpy.ops.transform.rotate(value=angle_y, orient_axis='Y')
-
-
-
-
+    """
 
     # Calculate the height of the object along the Z-axis
     z_coordinates = [v.co.z for v in obj.data.vertices]
@@ -306,17 +244,10 @@ def main():
     amount_to_raise = desired_min_z - min_z
 
     # Move the object along the Z-axis to keep it above the clipping boundary
-    obj.location.z += amount_to_raise + .3
-
-
-
-
-
+    obj.location.z += amount_to_raise + .1
 
     # Switch back to Object Mode to see the result
     bpy.ops.object.mode_set(mode='OBJECT')
-
-
 
 
     # Calculate the elapsed time in milliseconds
@@ -324,7 +255,5 @@ def main():
     print("\n======================================================")
     print("Run Time:", elapsed_time, "seconds")
     print("======================================================\n")
-
-    pass
 
 main()
