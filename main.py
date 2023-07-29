@@ -54,7 +54,10 @@ def merge_objects_in_collection(collection):
         bpy.context.view_layer.objects.active = objects_to_merge[0]
         bpy.ops.object.join()
 
-def __post_image_import():
+def import_image():
+
+    # Import the image, it is now alive
+    bpy.ops.import_curve.svg(filepath=SVG_FILE_PATHS)
     
     # Delete the first curve because it is an inline baseplate. ##can remove at some point and manipulate this curve into the baseplate
     # Step 1: Find and delete the curve with the name "Curve"
@@ -81,48 +84,9 @@ def __post_image_import():
 
     # Join selected curves
     bpy.ops.object.join()
-    
 
-def __merge_mesh(collection_name):
-    
-    collection = bpy.data.collections[collection_name]
-    mesh_objs = [obj for obj in collection.objects if obj.type == 'MESH']
 
-    if not mesh_objs:
-        raise ValueError("No mesh objects found in collection")
 
-    # Get all vertices of all mesh objects in collection
-    all_verts = np.array([
-        vert.co for obj in mesh_objs
-        for vert in obj.data.vertices
-    ])
-
-    # Calculate convex hull
-    hull = ConvexHull(all_verts)
-
-    # Create new mesh and link it to scene
-    mesh = bpy.data.meshes.new("Hull")
-    obj = bpy.data.objects.new("Hull", mesh)
-    bpy.context.collection.objects.link(obj)
-
-    # Create bmesh object and add vertices and faces
-    bm = bmesh.new()
-    for vertex in hull.points:
-        bm.verts.new(vertex)
-
-    bm.verts.ensure_lookup_table()
-
-    for simplex in hull.simplices:
-        try:
-            bm.faces.new([bm.verts[i] for i in simplex])
-        except ValueError:
-            # If face already exists, ignore
-            pass
-
-    # Update bmesh to mesh
-    bm.to_mesh(mesh)
-    bm.free()
-    
 def debug_object(obj):
     
     print(f"    Name: {obj.name}")
@@ -158,73 +122,47 @@ def main():
 
     dimension_check()
     clear_scene()
-
-    # Import the image, it is now alive
-    bpy.ops.import_curve.svg(filepath=SVG_FILE_PATHS)
-
-
-    __post_image_import()
-
-    mesh_objects = []
+    import_image()
 
     for index, obj in enumerate(bpy.data.objects):
         
+        # Rename the collection
         collection = obj.users_collection[index]
         collection.name = "QR_CODE_"+str(index)
-    
-        # convert to mesh
+
+        # convert curves to mesh
         bpy.context.view_layer.objects.active = obj
         obj.select_set(True)
         bpy.ops.object.convert(target='MESH')
-        obj.select_set(False)
-        
-        # Add to mesh_objects
-        mesh_objects.append(obj)
-            
-        print("Select: "+obj.name)
-        bpy.context.view_layer.objects.active = obj
-        obj.select_set(True)
         
         print("  Centering")
         center_of_mass = sum((v.co for v in obj.data.vertices), mathutils.Vector()) / len(obj.data.vertices)
         for vertex in obj.data.vertices:
             vertex.co -= center_of_mass
-        
-        bpy.ops.object.mode_set(mode='EDIT')
-        
-        
-        print("  Resizing")
+
+        print("  Scaling")
         current_dimensions = obj.dimensions
         max_dimension = max(current_dimensions)
         # Calculate the scale factor to achieve the desired size
         scale_factor = SIZE / max_dimension
-        print(f"{scale_factor} {SIZE} {max_dimension}")
+        print(f"  {scale_factor} {SIZE} {max_dimension}")
         obj.scale = (scale_factor, scale_factor, scale_factor)
-        
-        # Ensure the object is selected and is the active object
-        obj.select_set(True)
-        bpy.context.view_layer.objects.active = obj
-        
+        # apply the scale
         bpy.ops.object.mode_set(mode='OBJECT')
-
-        bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)  # Apply scale here
+        bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 
         print("  Solidify")
-        bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.modifier_add(type='SOLIDIFY')
         bpy.context.object.modifiers["Solidify"].thickness = QR_CODE_THICKNESS 
         bpy.ops.object.modifier_apply(modifier="Solidify")
         
         print("  Add Baseplate")
-        bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.mesh.primitive_plane_add(size=1, enter_editmode=False, location=(0, 0, 0))
-        
         baseplate_obj = bpy.context.active_object
-        
-        # Set baseplate dimensions based on QR code
+        # set baseplate dimensions based on QR code
         baseplate_obj.dimensions = (obj.dimensions.x + 2, obj.dimensions.y + 2, 1)
         collection.objects.link(baseplate_obj)
-        
+        # solidify the baseplate
         bpy.ops.object.modifier_add(type='SOLIDIFY')
         bpy.context.object.modifiers["Solidify"].thickness = QR_CODE_THICKNESS
         bpy.context.object.modifiers["Solidify"].offset = QR_CODE_THICKNESS 
@@ -305,24 +243,11 @@ def main():
         
         """
 
-
-
     # Get the active object
     obj = bpy.context.active_object
 
     # Set the origin of the object to its geometry
     bpy.ops.object.origin_set(type='ORIGIN_CENTER_OF_MASS', center='BOUNDS')
-
-
-
-
-
-
-
-
-
-
-
 
     # Get the dimensions of the object
     dimensions = obj.dimensions
