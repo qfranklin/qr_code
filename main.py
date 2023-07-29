@@ -6,10 +6,10 @@ import numpy as np
 from scipy.spatial import ConvexHull
 import math
 
-# TODO figure out why the python instance needs to import the current project
-import sys
-sys.path.append(r"C:\Users\qfran\Desktop\Blender\code\qr_code")
-from setup import clear_console
+# TODO figure out how to use the VSCode Blender extension with a traditional python project
+# import sys
+# sys.path.append(r"path_to_this_project")
+# import setup
 
 SCALE = 1
 SIZE = 35
@@ -19,7 +19,30 @@ QR_CODE_THICKNESS = .5
 SVG_FILE_PATHS = 'C:\\Users\\qfran\\Desktop\\gimp\\qrcode_script.svg'
 GRID_SIZE = 1
 
-clear_console()
+def clear_console():
+    # Clear the console
+    from os import system; cls = lambda: system('cls'); cls()
+    
+def dimension_check():
+    scene = bpy.context.scene
+    print("Unit Scale:", setattr(scene.unit_settings, 'scale_length', SCALE) or scene.unit_settings.scale_length)
+    print("Length Unit:", setattr(scene.unit_settings, 'length_unit', SCENE_UNITS) or scene.unit_settings.length_unit)
+    print("Unit System:", setattr(scene.unit_settings, 'system', SCENE_SYSTEM) or scene.unit_settings.system, "\n")
+
+def clear_scene():
+    if bpy.context.object and bpy.context.object.mode != 'OBJECT':
+        bpy.ops.object.mode_set(mode='OBJECT')
+        
+    # Delete objects
+    objects_to_delete = list(bpy.data.objects)
+    for obj in objects_to_delete:
+        #print('Deleting object:',obj.name)
+        bpy.data.objects.remove(obj)
+
+    # Delete collections
+    for collection in bpy.data.collections:
+        #print('Deleting collection:',collection.name)
+        bpy.data.collections.remove(collection)
 
 def merge_objects_in_collection(collection):
     # Merge objects in the given collection
@@ -121,7 +144,11 @@ def debug_object(obj):
     labels = ["Width (X)", "Depth (Y)", "Height (Z)"]
     print(f"    Dimensions (x,y,z): ({', '.join([f'{dimension:.2f}' for dimension in obj.dimensions])}) {SCENE_UNITS}")
         
+
 def main():
+
+    clear_console()
+
     # Get the current date and time
     current_time = datetime.datetime.now()
 
@@ -129,30 +156,8 @@ def main():
     print("Current Date and Time:", current_time)
     print("======================================================")
 
-    # Get the active scene
-    scene = bpy.context.scene
-
-    # Update the scene's unit settings and print the updated unit settings
-    print("Unit Scale:", setattr(scene.unit_settings, 'scale_length', SCALE) or scene.unit_settings.scale_length)
-    print("Length Unit:", setattr(scene.unit_settings, 'length_unit', SCENE_UNITS) or scene.unit_settings.length_unit)
-    print("Unit System:", setattr(scene.unit_settings, 'system', SCENE_SYSTEM) or scene.unit_settings.system, "\n")
-
-    # We will be switching between object and edit mode frequently
-    if bpy.context.object and bpy.context.object.mode != 'OBJECT':
-        bpy.ops.object.mode_set(mode='OBJECT')
-        
-    # Let's clear the scene by deleting everything
-
-    # Delete objects
-    objects_to_delete = list(bpy.data.objects)
-    for obj in objects_to_delete:
-        #print('Deleting object:',obj.name)
-        bpy.data.objects.remove(obj)
-
-    # Delete collections
-    for collection in bpy.data.collections:
-        #print('Deleting collection:',collection.name)
-        bpy.data.collections.remove(collection)
+    dimension_check()
+    clear_scene()
 
     # Import the image, it is now alive
     bpy.ops.import_curve.svg(filepath=SVG_FILE_PATHS)
@@ -406,6 +411,3 @@ def main():
     pass
 
 main()
-
-if __name__ == "__main__":
-    main()
