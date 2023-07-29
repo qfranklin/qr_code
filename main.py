@@ -82,7 +82,7 @@ def __post_image_import():
     # Join selected curves
     bpy.ops.object.join()
     
-    
+
 def __merge_mesh(collection_name):
     
     collection = bpy.data.collections[collection_name]
