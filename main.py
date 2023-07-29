@@ -16,8 +16,8 @@ SIZE = 35
 SCENE_SYSTEM = 'METRIC'
 SCENE_UNITS = 'MILLIMETERS'
 QR_CODE_THICKNESS = .5
-FILE_NAME = 'qrcode_script_new.svg'
-SVG_FILE_PATHS = 'C:\\Users\\qfran\\Desktop\\gimp\\'+FILE_NAME
+FILE_NAME = 'qrcode_script.svg'
+SVG_FILE_PATHS = 'C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\input\\'+FILE_NAME
 GRID_SIZE = 1
 
 def clear_console():
@@ -185,53 +185,38 @@ def main():
     # Set the origin of the object to its geometry
     bpy.ops.object.origin_set(type='ORIGIN_CENTER_OF_MASS', center='BOUNDS')
 
-    # Get the dimensions of the object
-    dimensions = obj.dimensions
+    if(GRID_SIZE > 1):
+        # Get the dimensions of the object
+        dimensions = obj.dimensions
 
-    # Duplicate the object in a grid
-    for i in range(GRID_SIZE):
-        for j in range(GRID_SIZE):
-            if i == 0 and j == 0:  # The original object, no need to duplicate
-                continue
-            # Duplicate the object
-            new_obj = obj.copy()
-            new_obj.data = obj.data.copy()
-            new_obj.animation_data_clear()
-            
-            # Update the location of the new object
-            new_obj.location.x += i * dimensions.x
-            new_obj.location.y += j * dimensions.y
-            
-            # Link the new object to the scene
-            bpy.context.collection.objects.link(new_obj)
-            
-    # Select all objects
-    bpy.ops.object.select_all(action='SELECT')
+        # Duplicate the object in a grid
+        for i in range(GRID_SIZE):
+            for j in range(GRID_SIZE):
+                if i == 0 and j == 0:  # The original object, no need to duplicate
+                    continue
+                # Duplicate the object
+                new_obj = obj.copy()
+                new_obj.data = obj.data.copy()
+                new_obj.animation_data_clear()
+                
+                # Update the location of the new object
+                new_obj.location.x += i * dimensions.x
+                new_obj.location.y += j * dimensions.y
+                
+                # Link the new object to the scene
+                bpy.context.collection.objects.link(new_obj)
+                
+        # Select all objects
+        bpy.ops.object.select_all(action='SELECT')
 
-    # Get the active object
-    active_obj = bpy.context.active_object
+        # Get the active object
+        active_obj = bpy.context.active_object
 
-    # Join all selected objects (this will join them into the active object)
-    bpy.ops.object.join()
+        # Join all selected objects (this will join them into the active object)
+        bpy.ops.object.join()
 
     # Make sure the desired mesh object is selected/active
     obj = bpy.context.active_object
-
-    """
-    # Switch to Edit Mode (if in Object Mode)
-    bpy.ops.object.mode_set(mode='EDIT')
-
-    # Select all vertices, edges, or faces (depending on what you want to rotate)
-    bpy.ops.mesh.select_all(action='SELECT')
-
-    # Calculate the 180-degree rotation in radians
-    angle_x = math.radians(180)
-    angle_y = math.radians(180)
-
-    # Rotate along the X or Y axis
-    bpy.ops.transform.rotate(value=angle_x, orient_axis='X')
-    # bpy.ops.transform.rotate(value=angle_y, orient_axis='Y')
-    """
 
     # Calculate the height of the object along the Z-axis
     z_coordinates = [v.co.z for v in obj.data.vertices]
@@ -246,9 +231,7 @@ def main():
     # Move the object along the Z-axis to keep it above the clipping boundary
     obj.location.z += amount_to_raise + .1
 
-    # Switch back to Object Mode to see the result
-    bpy.ops.object.mode_set(mode='OBJECT')
-
+    bpy.ops.export_mesh.stl(filepath="C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\output\\file.stl")
 
     # Calculate the elapsed time in milliseconds
     elapsed_time = round((datetime.datetime.now() - current_time).total_seconds(), 2)
