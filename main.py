@@ -6,6 +6,8 @@ import numpy as np
 from scipy.spatial import ConvexHull
 import math
 
+#import psutil
+
 # TODO figure out how to use the VSCode Blender extension with a traditional python project
 # import sys
 # sys.path.append(r"path_to_this_project")
@@ -114,6 +116,9 @@ def main():
     # Get the current date and time
     current_time = datetime.datetime.now()
 
+    # Get the current memory usage
+    #initial_memory = psutil.virtual_memory().used
+
     print("\n======================================================")
     print("Current Date and Time:", current_time)
     print("======================================================")
@@ -160,12 +165,60 @@ def main():
         bpy.ops.mesh.primitive_plane_add(size=1, enter_editmode=False, location=(0, 0, 0))
         baseplate_obj = bpy.context.active_object
         # set baseplate dimensions based on QR code
-        baseplate_obj.dimensions = (obj.dimensions.x + 2, obj.dimensions.y + 2, 1)
+        baseplate_obj.dimensions = (obj.dimensions.x + 8, obj.dimensions.y + 8, 1)
         collection.objects.link(baseplate_obj)
         # solidify the baseplate
         bpy.ops.object.modifier_add(type='SOLIDIFY')
         bpy.context.object.modifiers["Solidify"].thickness = QR_CODE_THICKNESS
         bpy.ops.object.modifier_apply(modifier="Solidify")
+
+        # Set mode to Object
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        # Get mesh data from the object
+        mesh = baseplate_obj.data
+
+        # Create a BMesh instance
+        bm = bmesh.new()
+
+        # Load the mesh data into the BMesh instance
+        bm.from_mesh(mesh)
+
+        # Set all faces to unselected
+        for f in bm.faces:
+            f.select = False
+
+        # Initialize a variable to keep track of the highest face
+        highest_face = None
+        highest_z = -float("inf")
+
+        # Loop through each face
+        for f in bm.faces:
+            # Get the average z-coordinate of the face
+            face_z = sum([v.co.z for v in f.verts])/len(f.verts)
+            
+            # If this face is higher than the current highest, update our tracking variables
+            if face_z > highest_z:
+                highest_z = face_z
+                highest_face = f
+
+        # Set the highest face to selected
+        if highest_face is not None:
+            highest_face.select = True
+
+        # Update the mesh data with the new selection
+        bm.to_mesh(mesh)
+        bm.free()
+
+        # Set mode to Edit
+        bpy.ops.object.mode_set(mode='EDIT')
+
+        # Apply the bevel
+        #bpy.ops.mesh.bevel(offset_type='OFFSET', offset=0.4)  # Adjust the offset parameter as needed
+        bpy.ops.mesh.bevel(offset=0.05, offset_pct=0, affect='EDGES')
+
+        # Switch back to object mode
+        bpy.ops.object.mode_set(mode='OBJECT')
 
         # select all objects and join them
         for obj in collection.objects:
@@ -177,7 +230,6 @@ def main():
         bpy.ops.object.join()
         # Rename the joined object
         bpy.context.active_object.name = 'qr_code'
-
 
     # Get the active object
     obj = bpy.context.active_object
@@ -238,5 +290,7 @@ def main():
     print("\n======================================================")
     print("Run Time:", elapsed_time, "seconds")
     print("======================================================\n")
+
+    #print(f"Memory used during script execution: {memory_used} bytes")
 
 main()
