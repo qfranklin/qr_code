@@ -126,9 +126,10 @@ def main():
 
     for index, obj in enumerate(bpy.data.objects):
         
-        # Rename the collection
         collection = obj.users_collection[index]
-        collection.name = "QR_CODE_"+str(index)
+
+        # rename collection
+        collection.name = "collection_"+str(index)
 
         # convert curves to mesh
         bpy.context.view_layer.objects.active = obj
@@ -167,26 +168,17 @@ def main():
         bpy.context.object.modifiers["Solidify"].thickness = QR_CODE_THICKNESS
         bpy.context.object.modifiers["Solidify"].offset = QR_CODE_THICKNESS 
         bpy.ops.object.modifier_apply(modifier="Solidify")
-        
-        # Apply the scale transformation to the cutter
-        bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-        
-        # Deselect all
-        bpy.ops.object.select_all(action='DESELECT')
 
-        # Select all meshes in the collection
+        # select all objects and join them
         for obj in collection.objects:
             if obj.type == 'MESH':
                 obj.select_set(True)
 
-        # Ensure there's something to join
-        if bpy.context.selected_objects:
-            # Set active object to be the first selected mesh to allow 'join' operator
-            bpy.context.view_layer.objects.active = bpy.context.selected_objects[0]
-            # Join selected meshes
-            bpy.ops.object.join()
-            # Rename the joined object
-            bpy.context.active_object.name = collection.name + '_merged'
+        bpy.context.view_layer.objects.active = bpy.context.selected_objects[0]
+        # Join selected meshes
+        bpy.ops.object.join()
+        # Rename the joined object
+        bpy.context.active_object.name = 'qr_code'
 
         # add cuts 
         """
