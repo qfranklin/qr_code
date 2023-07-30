@@ -20,7 +20,7 @@ SCENE_UNITS = 'MILLIMETERS'
 QR_CODE_THICKNESS = .5
 FILE_NAME = 'qrcode_script.svg'
 SVG_FILE_PATHS = 'C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\input\\'+FILE_NAME
-GRID_SIZE = 1
+GRID_SIZE = 2
 
 def clear_console():
     # Clear the console
@@ -214,8 +214,7 @@ def main():
         bpy.ops.object.mode_set(mode='EDIT')
 
         # Apply the bevel
-        #bpy.ops.mesh.bevel(offset_type='OFFSET', offset=0.4)  # Adjust the offset parameter as needed
-        bpy.ops.mesh.bevel(offset=0.05, offset_pct=0, affect='EDGES')
+        bpy.ops.mesh.bevel(offset_type='OFFSET', offset=0.07)
 
         # Switch back to object mode
         bpy.ops.object.mode_set(mode='OBJECT')
