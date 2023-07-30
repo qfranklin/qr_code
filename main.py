@@ -17,10 +17,15 @@ SCALE = 1
 SIZE = 35
 SCENE_SYSTEM = 'METRIC'
 SCENE_UNITS = 'MILLIMETERS'
-QR_CODE_THICKNESS = .5
+QR_CODE_THICKNESS = .3
+BASEPLATE_THICKNESS = .2
+QUIET_ZONE = 8
 FILE_NAME = 'qrcode_script.svg'
 SVG_FILE_PATHS = 'C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\input\\'+FILE_NAME
-GRID_SIZE = 2
+GRID_SIZE = 3
+
+# If the bottom layer is transparent, then invert the code so you can put a sticker as the back
+INVERT_QR_CODE = True
 
 def clear_console():
     # Clear the console
@@ -158,63 +163,49 @@ def main():
         print("  Solidify")
         bpy.ops.object.modifier_add(type='SOLIDIFY')
         bpy.context.object.modifiers["Solidify"].thickness = QR_CODE_THICKNESS 
-        bpy.context.object.modifiers["Solidify"].offset = QR_CODE_THICKNESS 
+
+        if not INVERT_QR_CODE:
+            bpy.context.object.modifiers["Solidify"].offset = QR_CODE_THICKNESS 
+        
         bpy.ops.object.modifier_apply(modifier="Solidify")
 
         print("  Add Baseplate")
         bpy.ops.mesh.primitive_plane_add(size=1, enter_editmode=False, location=(0, 0, 0))
         baseplate_obj = bpy.context.active_object
         # set baseplate dimensions based on QR code
-        baseplate_obj.dimensions = (obj.dimensions.x + 8, obj.dimensions.y + 8, 1)
+        baseplate_obj.dimensions = (obj.dimensions.x + QUIET_ZONE, obj.dimensions.y + QUIET_ZONE, 1)
         collection.objects.link(baseplate_obj)
         # solidify the baseplate
         bpy.ops.object.modifier_add(type='SOLIDIFY')
-        bpy.context.object.modifiers["Solidify"].thickness = QR_CODE_THICKNESS
+        bpy.context.object.modifiers["Solidify"].thickness = BASEPLATE_THICKNESS
+
+        if INVERT_QR_CODE:
+            bpy.context.object.modifiers["Solidify"].offset = BASEPLATE_THICKNESS 
+
         bpy.ops.object.modifier_apply(modifier="Solidify")
 
-        # Set mode to Object
+        '''
+        # Apply Bevel
         bpy.ops.object.mode_set(mode='OBJECT')
-
-        # Get mesh data from the object
         mesh = baseplate_obj.data
-
-        # Create a BMesh instance
         bm = bmesh.new()
-
-        # Load the mesh data into the BMesh instance
         bm.from_mesh(mesh)
-
-        # Set all faces to unselected
         for f in bm.faces:
             f.select = False
-
-        # Initialize a variable to keep track of the highest face
         highest_face = None
         highest_z = -float("inf")
-
-        # Loop through each face
         for f in bm.faces:
-            # Get the average z-coordinate of the face
             face_z = sum([v.co.z for v in f.verts])/len(f.verts)
-            
-            # If this face is higher than the current highest, update our tracking variables
             if face_z > highest_z:
                 highest_z = face_z
                 highest_face = f
-
-        # Set the highest face to selected
         if highest_face is not None:
             highest_face.select = True
-
-        # Update the mesh data with the new selection
         bm.to_mesh(mesh)
         bm.free()
-
-        # Set mode to Edit
         bpy.ops.object.mode_set(mode='EDIT')
-
-        # Apply the bevel
         bpy.ops.mesh.bevel(offset_type='OFFSET', offset=0.07)
+        '''
 
         # Switch back to object mode
         bpy.ops.object.mode_set(mode='OBJECT')
