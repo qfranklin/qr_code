@@ -2,7 +2,7 @@ const fs = require('fs');
 const QRCode = require('qrcode-svg');
 
 // Create a new QRCode instance with the desired data
-const qrCode = new QRCode("https://github.com/qfranklin/qr_code");
+const qrCode = new QRCode("www.quentinfranklin.com/892100eb.wav");
 
 // Generate the SVG representation of the QR code
 const svgString = qrCode.svg();

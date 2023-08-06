@@ -9,7 +9,7 @@ def draw_grid(image, layer, x1, y1, x2, y2):
 
 def create_image():
 
-    gap_in_pixels = 500  # Pixels (10 pixels = 1mm)
+    gap_in_pixels = 430  # Pixels (10 pixels = 1mm)
     total_size = gap_in_pixels * 3
 
     # Create a new RGB image
