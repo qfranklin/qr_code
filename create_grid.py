@@ -1,6 +1,5 @@
-# real path is C:\Users\qfran\AppData\Local\Programs\GIMP 2\lib\gimp\2.0\plug-ins\create_grid.py
-
 from gimpfu import *
+import textwrap
 
 def draw_grid(image, layer, x1, y1, x2, y2):
     pdb.gimp_context_set_foreground((0, 0, 0))  # Set color to black
@@ -9,13 +8,18 @@ def draw_grid(image, layer, x1, y1, x2, y2):
     pdb.gimp_paintbrush_default(layer, 4, [x1, y1, x1, y2])
     pdb.gimp_paintbrush_default(layer, 4, [x2, y1, x2, y2])
 
+def wrap_text(text, width):
+    '''Wrap text to specified width.'''
+    return textwrap.fill(text, width)
+
 def place_text(image, drawable, x, y, text):
     # Set the font and size
     font_name = "Arial"
     font_size = 40  # Adjust this as needed
 
-    # Create a new text layer at the top-left (0,0)
-    text_layer = pdb.gimp_text_fontname(image, None, 0, 0, text, 0, True, font_size, PIXELS, font_name)
+    # Wrap the text to fit the grid square
+    wrapped_text = wrap_text(text, 25)
+    text_layer = pdb.gimp_text_fontname(image, None, 0, 0, wrapped_text, 0, True, font_size, PIXELS, font_name)
 
     # Find out the width and height of the text layer
     text_width = pdb.gimp_drawable_width(text_layer)
@@ -23,7 +27,7 @@ def place_text(image, drawable, x, y, text):
 
     # Calculate how much to translate the layer to position the text's center at (x,y)
     translate_x = x - text_width / 2
-    translate_y = y - text_height / 2
+    translate_y = y - text_height / 2  # Subtracting 10 pixels, adjust as necessary
 
     pdb.gimp_layer_translate(text_layer, translate_x, translate_y)
 
@@ -64,11 +68,9 @@ def create_image():
         (gap_in_pixels * 2.5, gap_in_pixels * 2.5),       # Bottom-right square
     ]
 
-
     for center in centers:
         x, y = center
-        place_text(image, drawable, x, y, "Have a nice day!")
-
+        place_text(image, drawable, x, y, "This API facilitates cryptocurrency portfolio management and user interactions, while also offering cryptocurrency data retrieval, with special administrative functions for enhanced control.")
 
     # Display the image
     gimp.Display(image)

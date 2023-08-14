@@ -41,7 +41,7 @@ This will create a QR code SVG file for the URL "https://github.com/qfranklin/qr
 2. Convert the QR code SVG to a 3D model using the Python script:
 
 ```bash
- & 'C:\Program Files\Blender Foundation\Blender 3.6\blender.exe' --background --python main.py
+ "C:\Program Files\Blender Foundation\Blender 3.6\blender.exe" --background --python main.py
 ```
 
 This will create a 3D model from the SVG and save it as `file.stl` in the `output` directory.

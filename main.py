@@ -273,6 +273,12 @@ def main():
     # Move the object along the Z-axis to keep it above the clipping boundary
     obj.location.z += amount_to_raise + .1
 
+    # Select the object you want to rotate
+    obj = bpy.context.active_object
+
+    # Rotate the object around the Y-axis
+    obj.rotation_euler[1] += math.pi
+
     bpy.ops.export_mesh.stl(filepath="C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\output\\file.stl")
 
     # Calculate the elapsed time in milliseconds
