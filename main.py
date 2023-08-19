@@ -22,7 +22,7 @@ BASEPLATE_THICKNESS = .2
 QUIET_ZONE = 8
 FILE_NAME = 'qrcode_script.svg'
 SVG_FILE_PATHS = 'C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\input\\'+FILE_NAME
-GRID_SIZE = 3
+GRID_SIZE = 1
 
 # If the bottom layer is transparent, then invert the code so you can put a sticker as the back
 INVERT_QR_CODE = True
@@ -113,6 +113,16 @@ def debug_object(obj):
     labels = ["Width (X)", "Depth (Y)", "Height (Z)"]
     print(f"    Dimensions (x,y,z): ({', '.join([f'{dimension:.2f}' for dimension in obj.dimensions])}) {SCENE_UNITS}")
         
+def create_timestamp_text(text, location):
+    """ Create a 3D text object with given text and location. """
+    bpy.ops.object.text_add(enter_editmode=True, align='WORLD', location=location)
+    text_obj = bpy.context.object
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.font.delete(type='PREVIOUS_OR_SELECTION')
+    bpy.ops.font.text_insert(text=text)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
+    return text_obj
 
 def main():
 
@@ -143,11 +153,6 @@ def main():
         bpy.context.view_layer.objects.active = obj
         obj.select_set(True)
         bpy.ops.object.convert(target='MESH')
-        
-        print("  Centering")
-        center_of_mass = sum((v.co for v in obj.data.vertices), mathutils.Vector()) / len(obj.data.vertices)
-        for vertex in obj.data.vertices:
-            vertex.co -= center_of_mass
 
         print("  Scaling")
         current_dimensions = obj.dimensions
@@ -159,7 +164,43 @@ def main():
         # apply the scale
         bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+        
+        # Create 3D timestamp text
+        timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        text_obj = create_timestamp_text(timestamp, (0, 0, current_dimensions.z / 2))
+        text_obj.dimensions = (SIZE, SIZE, text_obj.dimensions.z)
+        
+        # Position the 3D text above the QR code
+        text_obj.location.z = obj.dimensions.z + text_obj.dimensions.z / 2
+        
+        # Link the text object to the collection
+        collection.objects.link(text_obj)
+        bpy.context.collection.objects.unlink(text_obj)
+        # Convert text to mesh
+        text_obj.select_set(True)
+        bpy.ops.object.convert(target='MESH')
+        
+        
+        
+        obj.select_set(True)
+        text_obj.select_set(True)
+        
+        # Set the active object to the one you want to keep (this will be the main object)
+        bpy.context.view_layer.objects.active = obj
 
+        # Join the objects
+        bpy.ops.object.join()
+        
+        print("  Centering")
+        center_of_mass = sum((v.co for v in obj.data.vertices), mathutils.Vector()) / len(obj.data.vertices)
+        for vertex in obj.data.vertices:
+            vertex.co -= center_of_mass
+            
+        center_of_mass = sum((v.co for v in obj.data.vertices), mathutils.Vector()) / len(obj.data.vertices)
+        for vertex in obj.data.vertices:
+            vertex.co -= center_of_mass
+
+        '''
         print("  Solidify")
         bpy.ops.object.modifier_add(type='SOLIDIFY')
         bpy.context.object.modifiers["Solidify"].thickness = QR_CODE_THICKNESS 
@@ -184,29 +225,6 @@ def main():
 
         bpy.ops.object.modifier_apply(modifier="Solidify")
 
-        '''
-        # Apply Bevel
-        bpy.ops.object.mode_set(mode='OBJECT')
-        mesh = baseplate_obj.data
-        bm = bmesh.new()
-        bm.from_mesh(mesh)
-        for f in bm.faces:
-            f.select = False
-        highest_face = None
-        highest_z = -float("inf")
-        for f in bm.faces:
-            face_z = sum([v.co.z for v in f.verts])/len(f.verts)
-            if face_z > highest_z:
-                highest_z = face_z
-                highest_face = f
-        if highest_face is not None:
-            highest_face.select = True
-        bm.to_mesh(mesh)
-        bm.free()
-        bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.bevel(offset_type='OFFSET', offset=0.07)
-        '''
-
         # Switch back to object mode
         bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -220,6 +238,7 @@ def main():
         bpy.ops.object.join()
         # Rename the joined object
         bpy.context.active_object.name = 'qr_code'
+        '''
 
     # Get the active object
     obj = bpy.context.active_object
