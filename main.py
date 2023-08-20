@@ -6,13 +6,6 @@ import numpy as np
 from scipy.spatial import ConvexHull
 import math
 
-#import psutil
-
-# TODO figure out how to use the VSCode Blender extension with a traditional python project
-# import sys
-# sys.path.append(r"path_to_this_project")
-# import setup
-
 SCALE = 1
 QR_CODE_SIZE = 35
 SCENE_SYSTEM = 'METRIC'
@@ -176,7 +169,6 @@ def add_baseplate(obj):
     bpy.context.collection.objects.unlink(baseplate_obj)
     # This ensures the baseplate is aligned with the QR code/timestamp's origin
     baseplate_obj.location =  obj.location.copy()
-    
     solidify_object(True)
 
     return baseplate_obj
@@ -232,26 +224,15 @@ def solidify_object(invert_code):
     bpy.ops.object.modifier_apply(modifier="Solidify")
 
 def main():
-
     current_time = start()
-
     image_obj = import_image()
-
     collection = image_obj.users_collection[0]
-
-    # Create 3D timestamp text
     add_timestamp(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), image_obj)
-
     merge_objects(collection)
-
     center_object(image_obj)
-        
     solidify_object(False)
-
-    baseplate_obj = add_baseplate(image_obj)
-
+    add_baseplate(image_obj)
     apply_grid(image_obj)
-
     end(current_time)
 
 main()
