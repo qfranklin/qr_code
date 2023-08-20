@@ -44,6 +44,10 @@ This will create a QR code SVG file for the URL "https://github.com/qfranklin/qr
  "C:\Program Files\Blender Foundation\Blender 3.6\blender.exe" --background --python main.py
 ```
 
+```bash
+ exec(open("C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\main.py").read())
+```
+
 This will create a 3D model from the SVG and save it as `file.stl` in the `output` directory.
 
 Note: Please update the paths in the Python script according to your file system.
