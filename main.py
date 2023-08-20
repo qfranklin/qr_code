@@ -5,6 +5,7 @@ import bmesh
 import numpy as np
 from scipy.spatial import ConvexHull
 import math
+import os
 
 SCALE = 1
 QR_CODE_SIZE = 35
@@ -13,9 +14,7 @@ SCENE_UNITS = 'MILLIMETERS'
 QR_CODE_THICKNESS = .2
 BASEPLATE_THICKNESS = .2
 QUIET_ZONE = 8
-FILE_NAME = 'qrcode_script.svg'
-SVG_FILE_PATHS = 'C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\input\\'+FILE_NAME
-TEXT_FILE_LOCATION = 'C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\input\\block_merged.ttf'
+TEXT_FILE_LOCATION = 'C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\block_merged.ttf'
 GRID_SIZE = 2
 FONT_SIZE = 1.5
 
@@ -89,13 +88,21 @@ def merge_objects(collection):
 
     return bpy.context.view_layer.objects.active
 
-def import_image():
+def import_image(svg_file_path):
 
-    # Import the image, it is now alive
-    bpy.ops.import_curve.svg(filepath=SVG_FILE_PATHS)
-    
-    # Delete the first curve because it is an inline baseplate. ##can remove at some point and manipulate this curve into the baseplate
-    # Step 1: Find and delete the curve with the name "Curve"
+    # Get a set of current collections before importing
+    current_collections = set(bpy.data.collections.keys())
+
+    # Import the SVG file
+    bpy.ops.import_curve.svg(filepath=svg_file_path)
+
+    # Find the newly added collection
+    new_collections = set(bpy.data.collections.keys()) - current_collections
+    if not new_collections:
+        raise ValueError(f"Failed to import and find a new collection from SVG at {svg_file_path}")
+    collection = bpy.data.collections[new_collections.pop()]
+
+    # Delete the "Curve" object if present
     curve_to_delete = bpy.data.objects.get("Curve")
     if curve_to_delete:
         bpy.ops.object.select_all(action='DESELECT')
@@ -105,8 +112,7 @@ def import_image():
     # Set the 3D cursor to the origin
     bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
 
-    # Select curves
-    collection = bpy.data.collections[FILE_NAME]
+    # Select curves within the new collection
     for obj in collection.objects:
         if obj.type == 'CURVE':
             obj.select_set(True)
@@ -120,11 +126,9 @@ def import_image():
     bpy.ops.object.join()
     bpy.ops.object.convert(target='MESH')
 
-    # Calculate the scale factor to achieve the desired size
+    # Calculate and apply scale factor
     scale_factor = QR_CODE_SIZE / max(bpy.context.view_layer.objects.active.dimensions)
     bpy.context.view_layer.objects.active.scale = (scale_factor, scale_factor, scale_factor)
-    # apply the scale
-    bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 
     # Return the joined curve object
@@ -205,6 +209,16 @@ def apply_grid(obj):
         # Join all selected objects (this will join them into the active object)
         bpy.ops.object.join()
         
+def position_in_grid(obj, i, j):
+    """Position the object at the (i, j) index of the grid."""
+    # Calculate the offset based on the dimensions of the object
+    offset_x = i * obj.dimensions.x
+    offset_y = j * obj.dimensions.y
+
+    # Update the location of the object
+    obj.location.x += offset_x
+    obj.location.y += offset_y
+
 def center_object(obj):
     center_of_mass = sum((v.co for v in obj.data.vertices), mathutils.Vector()) / len(obj.data.vertices)
     for vertex in obj.data.vertices:
@@ -227,20 +241,36 @@ def solidify_object(invert_code):
 
 def main():
     current_time = start()
-    image_obj = import_image()
-    collection = image_obj.users_collection[0]
-    add_timestamp(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), image_obj)
     
-    center_object(merge_objects(collection))
-    solidify_object(False)
-    baseplate_obj = add_baseplate(image_obj)
-    # baseplate_obj.location.y -= 6
+    # Using a counter to make sure we don't exceed the grid size
 
-    merged_object = center_object(merge_objects(collection))
-    bpy.context.view_layer.objects.active = merged_object
-    bpy.ops.transform.rotate(value=3.14159, orient_axis='Y')
+    input_dir = "C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\input\\"
 
-    apply_grid(image_obj)
+    for filename in os.listdir(input_dir):
+
+        print(f"    {filename} filename")
+
+        if filename.endswith(".svg"):
+            svg_file_path = os.path.join(input_dir, filename)
+            
+            # [Call the necessary functions to process the SVG]
+            image_obj = import_image(svg_file_path)
+            # apply_grid(image_obj)
+            
+            # Position the image object in the grid
+            # position_in_grid(image_obj, i, j)
+
+            collection = image_obj.users_collection[0]
+            add_timestamp(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), image_obj)
+    
+            center_object(merge_objects(collection))
+            solidify_object(False)
+            baseplate_obj = add_baseplate(image_obj)
+
+            merged_object = center_object(merge_objects(collection))
+            bpy.context.view_layer.objects.active = merged_object
+            bpy.ops.transform.rotate(value=3.14159, orient_axis='Y')
+    
     end(current_time)
 
 main()
