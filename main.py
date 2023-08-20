@@ -15,8 +15,9 @@ BASEPLATE_THICKNESS = .2
 QUIET_ZONE = 8
 FILE_NAME = 'qrcode_script.svg'
 SVG_FILE_PATHS = 'C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\input\\'+FILE_NAME
-GRID_SIZE = 1
-FONT_SIZE = 3.5
+TEXT_FILE_LOCATION = 'C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\input\\block_merged.ttf'
+GRID_SIZE = 2
+FONT_SIZE = 1.5
 
 # If the bottom layer is transparent, then invert the code so you can put a sticker as the back
 INVERT_QR_CODE = True
@@ -147,11 +148,13 @@ def add_timestamp(text, qr_code_obj):
     
     new_location = (
         qr_code_obj.location.x + 7,
-        qr_code_obj.location.y,
+        qr_code_obj.location.y - 1,
         qr_code_obj.location.z + qr_code_obj.dimensions.z + text_obj.dimensions.z/2
     )
     text_obj.location = new_location
     text_obj.dimensions = (QR_CODE_SIZE, QR_CODE_SIZE, text_obj.dimensions.z)
+
+    text_obj.data.font = bpy.data.fonts.load(TEXT_FILE_LOCATION)
     text_obj.data.size = FONT_SIZE
     text_obj.dimensions.y = 2
 
@@ -231,9 +234,11 @@ def main():
     center_object(merge_objects(collection))
     solidify_object(False)
     baseplate_obj = add_baseplate(image_obj)
-    baseplate_obj.location.y -= 5
+    # baseplate_obj.location.y -= 6
 
-    center_object(merge_objects(collection))
+    merged_object = center_object(merge_objects(collection))
+    bpy.context.view_layer.objects.active = merged_object
+    bpy.ops.transform.rotate(value=3.14159, orient_axis='Y')
 
     apply_grid(image_obj)
     end(current_time)
