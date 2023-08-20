@@ -86,6 +86,8 @@ def merge_objects(collection):
     bpy.context.view_layer.objects.active = collection.objects[0]
     bpy.ops.object.join()
 
+    return bpy.context.view_layer.objects.active
+
 def import_image():
 
     # Import the image, it is now alive
@@ -160,18 +162,13 @@ def add_timestamp(text, qr_code_obj):
 
 def add_baseplate(obj):
 
-    print("  Add Baseplate")
     bpy.ops.mesh.primitive_plane_add(size=1, enter_editmode=False, location=(0, 0, 0))
-    baseplate_obj = bpy.context.active_object
-    # set baseplate dimensions based on QR code
-    baseplate_obj.dimensions = (obj.dimensions.x + QUIET_ZONE, obj.dimensions.y + QUIET_ZONE, 1)
-    obj.users_collection[0].objects.link(baseplate_obj)
-    bpy.context.collection.objects.unlink(baseplate_obj)
-    # This ensures the baseplate is aligned with the QR code/timestamp's origin
-    baseplate_obj.location =  obj.location.copy()
+    bpy.context.active_object.dimensions = (obj.dimensions.x + QUIET_ZONE, obj.dimensions.y + QUIET_ZONE, 1)
+    obj.users_collection[0].objects.link(bpy.context.active_object)
+    bpy.context.collection.objects.unlink(bpy.context.active_object)
     solidify_object(True)
 
-    return baseplate_obj
+    return bpy.context.active_object
 
 def apply_grid(obj):
     
@@ -214,6 +211,8 @@ def center_object(obj):
     for vertex in obj.data.vertices:
         vertex.co -= center_of_mass
 
+    return bpy.context.view_layer.objects.active
+
 def solidify_object(invert_code):
     bpy.ops.object.modifier_add(type='SOLIDIFY')
     bpy.context.object.modifiers["Solidify"].thickness = QR_CODE_THICKNESS 
@@ -228,10 +227,14 @@ def main():
     image_obj = import_image()
     collection = image_obj.users_collection[0]
     add_timestamp(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), image_obj)
-    merge_objects(collection)
-    center_object(image_obj)
+    
+    center_object(merge_objects(collection))
     solidify_object(False)
-    add_baseplate(image_obj)
+    baseplate_obj = add_baseplate(image_obj)
+    baseplate_obj.location.y -= 5
+
+    center_object(merge_objects(collection))
+
     apply_grid(image_obj)
     end(current_time)
 
