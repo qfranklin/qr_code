@@ -100,9 +100,9 @@ def debug_object(obj):
     for collection in obj.users_collection:
         
         # no object should be in the Scene Collection. Added because dont know 
-        if(collection.name == 'Scene Collection'):
-            collection.objects.unlink(obj)
-            continue
+        #if(collection.name == 'Scene Collection'):
+        #    collection.objects.unlink(obj)
+        #    continue
         
         print(f"    In collection: {collection.name}")
         
@@ -113,15 +113,35 @@ def debug_object(obj):
     labels = ["Width (X)", "Depth (Y)", "Height (Z)"]
     print(f"    Dimensions (x,y,z): ({', '.join([f'{dimension:.2f}' for dimension in obj.dimensions])}) {SCENE_UNITS}")
         
-def create_timestamp_text(text, location):
+def create_timestamp_text(text, qr_code_obj):
     """ Create a 3D text object with given text and location. """
-    bpy.ops.object.text_add(enter_editmode=True, align='WORLD', location=location)
+    bpy.ops.object.text_add(enter_editmode=True, align='WORLD', location=(0, 0, 0))
     text_obj = bpy.context.object
-    bpy.ops.object.mode_set(mode='EDIT')
-    bpy.ops.font.delete(type='PREVIOUS_OR_SELECTION')
+
+    # Clear any default text
+    bpy.ops.font.select_all()
+    bpy.ops.font.delete(type='SELECTION')
     bpy.ops.font.text_insert(text=text)
+
     bpy.ops.object.mode_set(mode='OBJECT')
+
+    # Calculate position
+    # Get QR Code's bounding box dimensions
+    qr_bbox = qr_code_obj.dimensions
     
+    # Get text's bounding box dimensions
+    text_bbox = text_obj.dimensions
+
+    # Calculate the new position
+    # Position the text's bottom-left corner directly above the QR Code's top-left corner
+    new_location = (
+        qr_code_obj.location.x + 7,
+        qr_code_obj.location.y,
+        qr_code_obj.location.z + qr_bbox.z + text_bbox.z/2
+    )
+
+    text_obj.location = new_location
+
     return text_obj
 
 def main():
@@ -166,20 +186,28 @@ def main():
         bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
         
         # Create 3D timestamp text
+        current_dimensions = obj.dimensions
         timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        text_obj = create_timestamp_text(timestamp, (0, 0, current_dimensions.z / 2))
+        print(f"  {timestamp} timestamp")
+        text_location = (0, 0, current_dimensions.z)
+        text_obj = create_timestamp_text(timestamp, obj)
         text_obj.dimensions = (SIZE, SIZE, text_obj.dimensions.z)
         
-        # Position the 3D text above the QR code
-        text_obj.location.z = obj.dimensions.z + text_obj.dimensions.z / 2
-        
+        # Adjust font size (change to the desired size)
+        font_size = 3.5  # Adjust as needed
+        text_obj.data.size = font_size
+
+        # Adjust text box dimensions (width, height)
+        new_box_height = 2  # Adjust as needed
+        text_obj.dimensions.y = new_box_height
+
         # Link the text object to the collection
         collection.objects.link(text_obj)
         bpy.context.collection.objects.unlink(text_obj)
+        
         # Convert text to mesh
         text_obj.select_set(True)
         bpy.ops.object.convert(target='MESH')
-        
         
         
         obj.select_set(True)
@@ -190,7 +218,7 @@ def main():
 
         # Join the objects
         bpy.ops.object.join()
-        
+
         print("  Centering")
         center_of_mass = sum((v.co for v in obj.data.vertices), mathutils.Vector()) / len(obj.data.vertices)
         for vertex in obj.data.vertices:
@@ -199,8 +227,7 @@ def main():
         center_of_mass = sum((v.co for v in obj.data.vertices), mathutils.Vector()) / len(obj.data.vertices)
         for vertex in obj.data.vertices:
             vertex.co -= center_of_mass
-
-        '''
+            
         print("  Solidify")
         bpy.ops.object.modifier_add(type='SOLIDIFY')
         bpy.context.object.modifiers["Solidify"].thickness = QR_CODE_THICKNESS 
@@ -210,12 +237,20 @@ def main():
         
         bpy.ops.object.modifier_apply(modifier="Solidify")
 
+        # Here's where we set the object's origin to its center of mass
+        bpy.ops.object.origin_set(type='ORIGIN_CENTER_OF_MASS', center='BOUNDS')
+        qr_origin = obj.location.copy()
+
         print("  Add Baseplate")
         bpy.ops.mesh.primitive_plane_add(size=1, enter_editmode=False, location=(0, 0, 0))
         baseplate_obj = bpy.context.active_object
         # set baseplate dimensions based on QR code
         baseplate_obj.dimensions = (obj.dimensions.x + QUIET_ZONE, obj.dimensions.y + QUIET_ZONE, 1)
         collection.objects.link(baseplate_obj)
+        # This ensures the baseplate is aligned with the QR code/timestamp's origin
+        baseplate_obj.location = qr_origin
+        # Move the baseplate 3 units along the positive Y-axis
+        baseplate_obj.location.y += 3
         # solidify the baseplate
         bpy.ops.object.modifier_add(type='SOLIDIFY')
         bpy.context.object.modifiers["Solidify"].thickness = BASEPLATE_THICKNESS
@@ -238,7 +273,7 @@ def main():
         bpy.ops.object.join()
         # Rename the joined object
         bpy.context.active_object.name = 'qr_code'
-        '''
+
 
     # Get the active object
     obj = bpy.context.active_object
@@ -276,6 +311,7 @@ def main():
         # Join all selected objects (this will join them into the active object)
         bpy.ops.object.join()
 
+    '''
     # Make sure the desired mesh object is selected/active
     obj = bpy.context.active_object
 
@@ -297,6 +333,7 @@ def main():
 
     # Rotate the object around the Y-axis
     obj.rotation_euler[1] += math.pi
+    '''
 
     bpy.ops.export_mesh.stl(filepath="C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\output\\file.stl")
 
