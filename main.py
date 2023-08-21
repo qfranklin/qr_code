@@ -11,12 +11,12 @@ SCALE = 1
 QR_CODE_SIZE = 35
 SCENE_SYSTEM = 'METRIC'
 SCENE_UNITS = 'MILLIMETERS'
-QR_CODE_THICKNESS = .2
+QR_CODE_THICKNESS = .3
 BASEPLATE_THICKNESS = .2
 QUIET_ZONE = 8
 TEXT_FILE_LOCATION = 'C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\block_merged.ttf'
 GRID_SIZE = 2
-FONT_SIZE = 1.5
+FONT_SIZE = 1.6
 
 # If the bottom layer is transparent, then invert the code so you can put a sticker as the back
 INVERT_QR_CODE = True
@@ -242,34 +242,58 @@ def solidify_object(invert_code):
 def main():
     current_time = start()
     
-    # Using a counter to make sure we don't exceed the grid size
-
     input_dir = "C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\input\\"
 
-    for filename in os.listdir(input_dir):
-
-        print(f"    {filename} filename")
-
-        if filename.endswith(".svg"):
-            svg_file_path = os.path.join(input_dir, filename)
-            
-            # [Call the necessary functions to process the SVG]
-            image_obj = import_image(svg_file_path)
-            # apply_grid(image_obj)
-            
-            # Position the image object in the grid
-            # position_in_grid(image_obj, i, j)
-
-            collection = image_obj.users_collection[0]
-            add_timestamp(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), image_obj)
+    # Filter out only the SVG files
+    svg_files = [f for f in os.listdir(input_dir) if f.endswith(".svg")]
+    total_files = len(svg_files)
     
-            center_object(merge_objects(collection))
-            solidify_object(False)
-            baseplate_obj = add_baseplate(image_obj)
+    # Calculate the grid size
+    GRID_SIZE = int(total_files**0.5) + (1 if (total_files**0.5) % 1 > 0 else 0)  # Ceiling of the square root
 
-            merged_object = center_object(merge_objects(collection))
-            bpy.context.view_layer.objects.active = merged_object
-            bpy.ops.transform.rotate(value=3.14159, orient_axis='Y')
+    # List to store all the QR code objects
+    qr_objects = []
+
+    for index, filename in enumerate(svg_files):
+
+        svg_file_path = os.path.join(input_dir, filename)
+        image_obj = import_image(svg_file_path)
+
+        collection = image_obj.users_collection[0]
+        # add_timestamp(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), image_obj)
+    
+        center_object(merge_objects(collection))
+        solidify_object(False)
+        baseplate_obj = add_baseplate(image_obj)
+
+        merged_object = center_object(merge_objects(collection))
+        bpy.context.view_layer.objects.active = merged_object
+        bpy.ops.transform.rotate(value=3.14159, orient_axis='Y')
+
+        # Calculate position in the grid
+        i = index // GRID_SIZE  # integer division gives the row number
+        j = index % GRID_SIZE   # modulo gives the column number
+
+        position_in_grid(image_obj, i, j)
+
+        qr_objects.append(merged_object)
+
+    # Select all the QR code objects
+    for obj in qr_objects:
+        obj.select_set(True)
+        
+    # Set the active object to the first one in the list for the join operation
+    bpy.context.view_layer.objects.active = qr_objects[0]
+    
+    # Join all selected objects
+    bpy.ops.object.join()
+
+    # Get a list of all collections
+    all_collections = list(bpy.data.collections)
+    
+    # Loop through and delete all other collections
+    for coll in all_collections[1:]:
+        bpy.data.collections.remove(coll)
     
     end(current_time)
 
