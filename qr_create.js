@@ -2,7 +2,7 @@ const fs = require('fs');
 const QRCode = require('qrcode-svg');
 
 // URLs to generate QR codes for
-const urls = [
+const urls =  [
 ];
 
 // Loop through the URLs and generate QR codes

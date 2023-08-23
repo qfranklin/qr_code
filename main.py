@@ -11,12 +11,13 @@ SCALE = 1
 QR_CODE_SIZE = 35
 SCENE_SYSTEM = 'METRIC'
 SCENE_UNITS = 'MILLIMETERS'
-QR_CODE_THICKNESS = .3
+QR_CODE_THICKNESS = .2
 BASEPLATE_THICKNESS = .2
 QUIET_ZONE = 8
-TEXT_FILE_LOCATION = 'C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\block_merged.ttf'
+TEXT_FILE_LOCATION = 'C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\blockbit.ttf'
 GRID_SIZE = 2
-FONT_SIZE = 1.6
+FONT_SIZE = 6
+QR_SPACING = 0
 
 # If the bottom layer is transparent, then invert the code so you can put a sticker as the back
 INVERT_QR_CODE = True
@@ -158,9 +159,13 @@ def add_timestamp(text, qr_code_obj):
     text_obj.location = new_location
     text_obj.dimensions = (QR_CODE_SIZE, QR_CODE_SIZE, text_obj.dimensions.z)
 
-    text_obj.data.font = bpy.data.fonts.load(TEXT_FILE_LOCATION)
+    # text_obj.data.font = bpy.data.fonts.load(TEXT_FILE_LOCATION)
     text_obj.data.size = FONT_SIZE
-    text_obj.dimensions.y = 2
+    
+    # 
+    text_obj.dimensions.y = 1
+
+    # text_obj.data.space_character = 1.4
 
     qr_code_obj.users_collection[0].objects.link(text_obj)
     bpy.context.collection.objects.unlink(text_obj)
@@ -212,8 +217,8 @@ def apply_grid(obj):
 def position_in_grid(obj, i, j):
     """Position the object at the (i, j) index of the grid."""
     # Calculate the offset based on the dimensions of the object
-    offset_x = i * obj.dimensions.x
-    offset_y = j * obj.dimensions.y
+    offset_x = i * (obj.dimensions.x + QR_SPACING)
+    offset_y = j * (obj.dimensions.y + QR_SPACING)
 
     # Update the location of the object
     obj.location.x += offset_x
@@ -235,7 +240,7 @@ def solidify_object(invert_code):
     bpy.context.object.modifiers["Solidify"].thickness = QR_CODE_THICKNESS 
 
     if invert_code:
-        bpy.context.object.modifiers["Solidify"].offset = QR_CODE_THICKNESS 
+        bpy.context.object.modifiers["Solidify"].offset = 1
     
     bpy.ops.object.modifier_apply(modifier="Solidify")
 
@@ -260,13 +265,14 @@ def main():
         image_obj = import_image(svg_file_path)
 
         collection = image_obj.users_collection[0]
-        # add_timestamp(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), image_obj)
-    
-        center_object(merge_objects(collection))
-        solidify_object(False)
-        baseplate_obj = add_baseplate(image_obj)
+        add_timestamp(datetime.datetime.now().strftime('%Y-%m-%d'), image_obj)
 
         merged_object = center_object(merge_objects(collection))
+        solidify_object(False)
+        add_baseplate(image_obj)
+
+        merged_object = center_object(merge_objects(collection))
+        # cut_qr_code(merged_object)
         bpy.context.view_layer.objects.active = merged_object
         bpy.ops.transform.rotate(value=3.14159, orient_axis='Y')
 
@@ -281,7 +287,8 @@ def main():
     # Select all the QR code objects
     for obj in qr_objects:
         obj.select_set(True)
-        
+
+    '''
     # Set the active object to the first one in the list for the join operation
     bpy.context.view_layer.objects.active = qr_objects[0]
     
@@ -294,7 +301,7 @@ def main():
     # Loop through and delete all other collections
     for coll in all_collections[1:]:
         bpy.data.collections.remove(coll)
-    
+    '''
     end(current_time)
 
 main()
