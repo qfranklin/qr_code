@@ -1,5 +1,6 @@
 import bpy
 import datetime
+import mathutils
 from config import *
 
 def start():
@@ -73,6 +74,17 @@ def solidify_object(invert_code):
         bpy.context.object.modifiers["Solidify"].offset = 1
     
     bpy.ops.object.modifier_apply(modifier="Solidify")
+
+def center_object(obj):
+    center_of_mass = sum((v.co for v in obj.data.vertices), mathutils.Vector()) / len(obj.data.vertices)
+    for vertex in obj.data.vertices:
+        vertex.co -= center_of_mass
+        
+    center_of_mass = sum((v.co for v in obj.data.vertices), mathutils.Vector()) / len(obj.data.vertices)
+    for vertex in obj.data.vertices:
+        vertex.co -= center_of_mass
+
+    return bpy.context.view_layer.objects.active
 
 def end(current_time):
     bpy.ops.export_mesh.stl(filepath="C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\output\\file.stl")

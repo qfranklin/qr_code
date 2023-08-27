@@ -1,5 +1,4 @@
 import bpy
-import mathutils
 import datetime
 import os
 import sys
@@ -104,41 +103,9 @@ def add_baseplate(obj):
     solidify_object(True)
 
     return bpy.context.active_object
-
-def apply_grid(obj):
-    
-    if(GRID_SIZE > 1):
-        # Get the dimensions of the object
-        dimensions = obj.dimensions
-
-        # Duplicate the object in a grid
-        for i in range(GRID_SIZE):
-            for j in range(GRID_SIZE):
-                if i == 0 and j == 0:  # The original object, no need to duplicate
-                    continue
-                # Duplicate the object
-                new_obj = obj.copy()
-                new_obj.data = obj.data.copy()
-                new_obj.animation_data_clear()
-                
-                # Update the location of the new object
-                new_obj.location.x += i * dimensions.x
-                new_obj.location.y += j * dimensions.y
-                
-                # Link the new object to the scene
-                bpy.context.collection.objects.link(new_obj)
-                
-        # Select all objects
-        bpy.ops.object.select_all(action='SELECT')
-
-        # Get the active object
-        active_obj = bpy.context.active_object
-
-        # Join all selected objects (this will join them into the active object)
-        bpy.ops.object.join()
-        
+     
 def position_in_grid(obj, i, j):
-    """Position the object at the (i, j) index of the grid."""
+    
     # Calculate the offset based on the dimensions of the object
     offset_x = i * (obj.dimensions.x + QR_SPACING)
     offset_y = j * (obj.dimensions.y + QR_SPACING)
@@ -146,17 +113,6 @@ def position_in_grid(obj, i, j):
     # Update the location of the object
     obj.location.x += offset_x
     obj.location.y += offset_y
-
-def center_object(obj):
-    center_of_mass = sum((v.co for v in obj.data.vertices), mathutils.Vector()) / len(obj.data.vertices)
-    for vertex in obj.data.vertices:
-        vertex.co -= center_of_mass
-        
-    center_of_mass = sum((v.co for v in obj.data.vertices), mathutils.Vector()) / len(obj.data.vertices)
-    for vertex in obj.data.vertices:
-        vertex.co -= center_of_mass
-
-    return bpy.context.view_layer.objects.active
 
 def main():
     current_time = start()
