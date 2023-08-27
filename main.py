@@ -11,9 +11,11 @@ CURRENT_DIR = "C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\"
 if CURRENT_DIR not in sys.path:
     sys.path.append(CURRENT_DIR)
 
+import config
+import utils 
 
-from config import *
-from utils import *
+importlib.reload(config)
+importlib.reload(utils)
   
 
 def import_image(svg_file_path):
@@ -55,14 +57,14 @@ def import_image(svg_file_path):
     bpy.ops.object.convert(target='MESH')
 
     # Calculate and apply scale factor
-    scale_factor = QR_CODE_SIZE / max(bpy.context.view_layer.objects.active.dimensions)
+    scale_factor = config.QR_CODE_SIZE / max(bpy.context.view_layer.objects.active.dimensions)
     bpy.context.view_layer.objects.active.scale = (scale_factor, scale_factor, scale_factor)
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 
     # Return the joined curve object
     return bpy.context.view_layer.objects.active
      
-def add_timestamp(text, qr_code_obj):
+def add_string(text, qr_code_obj):
 
     bpy.ops.object.text_add(enter_editmode=True, align='WORLD', location=(0, 0, 0))
     text_obj = bpy.context.object
@@ -72,8 +74,8 @@ def add_timestamp(text, qr_code_obj):
     bpy.ops.object.mode_set(mode='OBJECT')
     
     new_location = (
-        qr_code_obj.location.x + TEXT_X_OFFSET,
-        qr_code_obj.location.y + TEXT_Y_OFFSET,
+        qr_code_obj.location.x + config.TEXT_X_OFFSET,
+        qr_code_obj.location.y + config.TEXT_Y_OFFSET,
         qr_code_obj.location.z + qr_code_obj.dimensions.z + text_obj.dimensions.z/2
     )
     text_obj.location = new_location
@@ -82,7 +84,7 @@ def add_timestamp(text, qr_code_obj):
     # text_obj.data.extrude = 0.1
 
     # text_obj.data.font = bpy.data.fonts.load(TEXT_FILE_LOCATION)
-    text_obj.data.size = FONT_SIZE
+    text_obj.data.size = config.FONT_SIZE
     
     # 
     text_obj.dimensions.y = 1
@@ -97,26 +99,27 @@ def add_timestamp(text, qr_code_obj):
 def add_baseplate(obj):
 
     bpy.ops.mesh.primitive_plane_add(size=1, enter_editmode=False, location=(0, 0, 0))
-    bpy.context.active_object.dimensions = (obj.dimensions.x + QUIET_ZONE, obj.dimensions.y + QUIET_ZONE, 1)
+    bpy.context.active_object.dimensions = (obj.dimensions.x + config.QUIET_ZONE, obj.dimensions.y + config.QUIET_ZONE, 1)
     obj.users_collection[0].objects.link(bpy.context.active_object)
     bpy.context.collection.objects.unlink(bpy.context.active_object)
-    solidify_object(True)
+    utils.solidify_object(True)
 
     return bpy.context.active_object
      
 def position_in_grid(obj, i, j):
     
     # Calculate the offset based on the dimensions of the object
-    offset_x = i * (obj.dimensions.x + QR_SPACING)
-    offset_y = j * (obj.dimensions.y + QR_SPACING)
+    offset_x = i * (obj.dimensions.x + config.QR_SPACING)
+    offset_y = j * (obj.dimensions.y + config.QR_SPACING)
 
     # Update the location of the object
     obj.location.x += offset_x
     obj.location.y += offset_y
 
 def main():
-    current_time = start()
-    
+
+    current_time = utils.start()
+
     input_dir = CURRENT_DIR + "input\\"
 
     # Filter out only the SVG files
@@ -124,7 +127,7 @@ def main():
     total_files = len(svg_files)
     
     # Calculate the grid size
-    GRID_SIZE = int(total_files**0.5) + (1 if (total_files**0.5) % 1 > 0 else 0)  # Ceiling of the square root
+    grid_size = int(total_files**0.5) + (1 if (total_files**0.5) % 1 > 0 else 0)  # Ceiling of the square root
 
     # List to store all the QR code objects
     qr_objects = []
@@ -132,31 +135,26 @@ def main():
     # date = datetime.date.today()
     # current_date = date.strftime('%Y-%m-%d')
 
-    input_names = [
-        "Github"
-    ];
-
     for index, filename in enumerate(svg_files):
 
         svg_file_path = os.path.join(input_dir, filename)
         image_obj = import_image(svg_file_path)
 
         collection = image_obj.users_collection[0]
-        input_string = input_names[index]
-        add_timestamp(input_string, image_obj)
+        input_string = config.INPUT_NAMES[index]
+        add_string(input_string, image_obj)
 
-        merged_object = center_object(merge_objects(collection))
-        solidify_object(False)
+        merged_object = utils.center_object(utils.merge_objects(collection))
+        utils.solidify_object(False)
         add_baseplate(image_obj)
 
-        merged_object = center_object(merge_objects(collection))
-        # cut_qr_code(merged_object)
+        merged_object = utils.center_object(utils.merge_objects(collection))
         bpy.context.view_layer.objects.active = merged_object
         bpy.ops.transform.rotate(value=3.14159, orient_axis='Y')
 
         # Calculate position in the grid
-        i = index // GRID_SIZE  # integer division gives the row number
-        j = index % GRID_SIZE   # modulo gives the column number
+        i = index // grid_size  # integer division gives the row number
+        j = index % grid_size   # modulo gives the column number
 
         position_in_grid(image_obj, i, j)
 
@@ -180,6 +178,6 @@ def main():
     for coll in all_collections[1:]:
         bpy.data.collections.remove(coll)
     '''
-    end(current_time)
+    utils.end(current_time)
 
 main()
