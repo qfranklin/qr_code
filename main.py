@@ -6,18 +6,27 @@ import numpy as np
 from scipy.spatial import ConvexHull
 import math
 import os
+import time
 
 SCALE = 1
-QR_CODE_SIZE = 35
 SCENE_SYSTEM = 'METRIC'
 SCENE_UNITS = 'MILLIMETERS'
-QR_CODE_THICKNESS = .2
-BASEPLATE_THICKNESS = .2
-QUIET_ZONE = 8
-TEXT_FILE_LOCATION = 'C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\blockbit.ttf'
-GRID_SIZE = 2
-FONT_SIZE = 6
+
+QR_CODE_SIZE = 20
 QR_SPACING = 0
+QR_CODE_THICKNESS = .2
+QUIET_ZONE = 8
+
+BASEPLATE_THICKNESS = .2
+
+TEXT_FILE_LOCATION = 'C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\blockbit.ttf'
+
+GRID_SIZE = 2
+
+# Have to adjust these based on text. A real sicko would figure out how to automate this. 
+FONT_SIZE = 6
+TEXT_X_OFFSET = 4
+TEXT_Y_OFFSET = -1
 
 # If the bottom layer is transparent, then invert the code so you can put a sticker as the back
 INVERT_QR_CODE = True
@@ -152,12 +161,14 @@ def add_timestamp(text, qr_code_obj):
     bpy.ops.object.mode_set(mode='OBJECT')
     
     new_location = (
-        qr_code_obj.location.x + 7,
-        qr_code_obj.location.y - 1,
+        qr_code_obj.location.x + TEXT_X_OFFSET,
+        qr_code_obj.location.y + TEXT_Y_OFFSET,
         qr_code_obj.location.z + qr_code_obj.dimensions.z + text_obj.dimensions.z/2
     )
     text_obj.location = new_location
-    text_obj.dimensions = (QR_CODE_SIZE, QR_CODE_SIZE, text_obj.dimensions.z)
+    # text_obj.dimensions = (QR_CODE_SIZE, QR_CODE_SIZE, text_obj.dimensions.z)
+
+    # text_obj.data.extrude = 0.1
 
     # text_obj.data.font = bpy.data.fonts.load(TEXT_FILE_LOCATION)
     text_obj.data.size = FONT_SIZE
@@ -259,13 +270,46 @@ def main():
     # List to store all the QR code objects
     qr_objects = []
 
+    date = datetime.date.today()
+
+    current_date = date.strftime('%Y-%m-%d')
+
+    input_names = [
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1",
+        "SL-1"
+    ];
+
     for index, filename in enumerate(svg_files):
 
         svg_file_path = os.path.join(input_dir, filename)
         image_obj = import_image(svg_file_path)
 
         collection = image_obj.users_collection[0]
-        add_timestamp(datetime.datetime.now().strftime('%Y-%m-%d'), image_obj)
+        input_string = input_names[index]
+        add_timestamp(input_string, image_obj)
 
         merged_object = center_object(merge_objects(collection))
         solidify_object(False)
