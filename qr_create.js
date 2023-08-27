@@ -3,7 +3,7 @@ const QRCode = require('qrcode-svg');
 
 // URLs to generate QR codes for
 const urls =  [
-
+    "https://github.com/qfranklin/qr_code"
 ];
 
 // Loop through the URLs and generate QR codes
