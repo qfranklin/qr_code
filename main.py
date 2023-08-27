@@ -122,23 +122,31 @@ def main():
 
     input_dir = CURRENT_DIR + "input\\"
 
-    # Filter out only the SVG files
-    svg_files = [f for f in os.listdir(input_dir) if f.endswith(".svg")]
-    total_files = len(svg_files)
-    
-    # Calculate the grid size
-    grid_size = int(total_files**0.5) + (1 if (total_files**0.5) % 1 > 0 else 0)  # Ceiling of the square root
-
-    # List to store all the QR code objects
     qr_objects = []
 
-    # date = datetime.date.today()
-    # current_date = date.strftime('%Y-%m-%d')
+    if config.REPEAT:
+        for index in range(config.REPEAT):
+            qr_objects.append((index, config.REPEAT_FILENAME))
+    else:
+        # Filter out only the SVG files
+        svg_files = [f for f in os.listdir(input_dir) if f.endswith(".svg")]
+        for index, svg_file in enumerate(svg_files):
+            qr_objects.append((index, svg_file))
+    
+    # Calculate the grid size
+    if(config.REPEAT):
+        grid_size = config.REPEAT
+    else:
+        grid_size = int(len(qr_objects)**0.5) + (1 if (len(qr_objects)**0.5) % 1 > 0 else 0)  # Ceiling of the square root
 
-    for index, filename in enumerate(svg_files):
+    for index, filename in qr_objects:
+
+        # print(f"{index} start loop {len(qr_objects)}")
 
         svg_file_path = os.path.join(input_dir, filename)
         image_obj = import_image(svg_file_path)
+
+        utils.debug_object(image_obj)
 
         collection = image_obj.users_collection[0]
         input_string = config.INPUT_NAMES[index]
@@ -158,13 +166,16 @@ def main():
 
         position_in_grid(image_obj, i, j)
 
-        qr_objects.append(merged_object)
+        # qr_objects.append(merged_object)
+
+        # print(f"{index} end loop")
 
     # Select all the QR code objects
+    '''
     for obj in qr_objects:
         obj.select_set(True)
 
-    '''
+
     # Set the active object to the first one in the list for the join operation
     bpy.context.view_layer.objects.active = qr_objects[0]
     
