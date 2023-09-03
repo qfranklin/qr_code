@@ -12,12 +12,12 @@ BASEPLATE_THICKNESS = .2
 
 TEXT_FILE_NAME = 'blockbit.ttf'
 INPUT_NAMES = [
-    "Github"
+    "Input name"
 ];
-FONT_SIZE = 7
+FONT_SIZE = 5
 TEXT_X_OFFSET = 4
 TEXT_Y_OFFSET = -1
 INVERT_QR_CODE = True
 
-REPEAT = False
+REPEAT = 9
 REPEAT_FILENAME = "qrcode_1.svg"

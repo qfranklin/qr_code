@@ -20,6 +20,8 @@ importlib.reload(utils)
 
 def import_image(svg_file_path):
 
+    print("import_image start")
+
     # Get a set of current collections before importing
     current_collections = set(bpy.data.collections.keys())
 
@@ -60,6 +62,8 @@ def import_image(svg_file_path):
     scale_factor = config.QR_CODE_SIZE / max(bpy.context.view_layer.objects.active.dimensions)
     bpy.context.view_layer.objects.active.scale = (scale_factor, scale_factor, scale_factor)
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+
+    print("import_image end")
 
     # Return the joined curve object
     return bpy.context.view_layer.objects.active
@@ -107,14 +111,34 @@ def add_baseplate(obj):
     return bpy.context.active_object
      
 def position_in_grid(obj, i, j):
-    
-    # Calculate the offset based on the dimensions of the object
-    offset_x = i * (obj.dimensions.x + config.QR_SPACING)
-    offset_y = j * (obj.dimensions.y + config.QR_SPACING)
 
-    # Update the location of the object
+    # print(f"    {i} {j} i j")
+
+    offset_y = i * (obj.dimensions.y + config.QR_SPACING)
+    offset_x = j * (obj.dimensions.x + config.QR_SPACING)
     obj.location.x += offset_x
     obj.location.y += offset_y
+
+def create_qr_code(svg_file_path, index):
+    image_obj = import_image(svg_file_path)
+
+    collection = image_obj.users_collection[0]
+    if(config.REPEAT):
+        input_string = config.INPUT_NAMES[0]
+    else:
+        input_string = config.INPUT_NAMES[index]
+    
+    add_string(input_string, image_obj)
+
+    merged_object = utils.center_object(utils.merge_objects(collection))
+    utils.solidify_object(False)
+    add_baseplate(image_obj)
+
+    merged_object = utils.center_object(utils.merge_objects(collection))
+    bpy.context.view_layer.objects.active = merged_object
+    bpy.ops.transform.rotate(value=3.14159, orient_axis='Y')
+
+    return image_obj
 
 def main():
 
@@ -134,37 +158,43 @@ def main():
             qr_objects.append((index, svg_file))
     
     # Calculate the grid size
-    if(config.REPEAT):
-        grid_size = config.REPEAT
-    else:
-        grid_size = int(len(qr_objects)**0.5) + (1 if (len(qr_objects)**0.5) % 1 > 0 else 0)  # Ceiling of the square root
+    grid_size = int(len(qr_objects)**0.5) + (1 if (len(qr_objects)**0.5) % 1 > 0 else 0)  # Ceiling of the square root
+
+    # Import image once before loop if REPEAT is set
+    image_obj = None
+    if config.REPEAT:
+        image_obj = create_qr_code(os.path.join(input_dir, config.REPEAT_FILENAME), 0)
+        utils.set_origin_to_center(image_obj)
+        image_obj.location = (0, 0, 0)
 
     for index, filename in qr_objects:
 
+        if config.REPEAT and index == 0:
+            continue
+
         # print(f"{index} start loop {len(qr_objects)}")
 
-        svg_file_path = os.path.join(input_dir, filename)
-        image_obj = import_image(svg_file_path)
+        # print(f"Dimensions for QR code {index}: {image_obj.dimensions}")
 
-        utils.debug_object(image_obj)
+        # Import image inside loop only if REPEAT is not set
+        if not config.REPEAT:
+            image_obj = create_qr_code(os.path.join(input_dir, filename), index)
+        else: 
+            image_obj = utils.duplicate_object(image_obj)
+            utils.set_origin_to_center(image_obj)
+        
+        # utils.debug_object(image_obj)
 
-        collection = image_obj.users_collection[0]
-        input_string = config.INPUT_NAMES[index]
-        add_string(input_string, image_obj)
-
-        merged_object = utils.center_object(utils.merge_objects(collection))
-        utils.solidify_object(False)
-        add_baseplate(image_obj)
-
-        merged_object = utils.center_object(utils.merge_objects(collection))
-        bpy.context.view_layer.objects.active = merged_object
-        bpy.ops.transform.rotate(value=3.14159, orient_axis='Y')
+        image_obj.location = (0, 0, 0)
 
         # Calculate position in the grid
         i = index // grid_size  # integer division gives the row number
         j = index % grid_size   # modulo gives the column number
 
         position_in_grid(image_obj, i, j)
+
+        # utils.debug_object(image_obj)
+        print(f"Name: {image_obj.name}, X: {image_obj.location.x}, Y: {image_obj.location.y}")
 
         # qr_objects.append(merged_object)
 
@@ -190,5 +220,10 @@ def main():
         bpy.data.collections.remove(coll)
     '''
     utils.end(current_time)
+
+    # print("Coordinates for QR codes grid:")
+    # for obj in qr_objects:
+        # print(f"Name: {obj.name}, X: {obj.location.x}, Y: {obj.location.y}")
+        # utils.debug_object(obj)
 
 main()

@@ -50,6 +50,12 @@ This will create a QR code SVG file for the URL "https://github.com/qfranklin/qr
 
 This will create a 3D model from the SVG and save it as `file.stl` in the `output` directory.
 
+3. Create the grid
+
+```bash
+ "C:\Users\qfran\AppData\Local\Programs\GIMP 2\bin\gimp-2.10.exe" -i -b '(create_grid.py RUN-NONINTERACTIVE)' -b '(gimp-quit 0)'
+```
+
 Note: Please update the paths in the Python script according to your file system.
 
 ## Configuration
