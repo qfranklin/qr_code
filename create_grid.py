@@ -35,33 +35,35 @@ def place_text(image, drawable, x, y, text):
 
 def create_image():
 
-    gap_in_pixels = 500  # Pixels (10 pixels = 1mm)
-    total_size = gap_in_pixels * 3
+    gap_in_pixels_width = 500
+    gap_in_pixels_height = 400  # Different height for the grid cell
+    total_size_width = gap_in_pixels_width * 3
+    total_size_height = gap_in_pixels_height * 3
 
     # Create a new RGB image
-    image = gimp.Image(total_size, total_size, RGB)
-    layer = gimp.Layer(image, "Background", total_size, total_size, RGB_IMAGE, 100, NORMAL_MODE)
+    image = gimp.Image(total_size_width, total_size_height, RGB)
+    layer = gimp.Layer(image, "Background", total_size_width, total_size_height, RGB_IMAGE, 100, NORMAL_MODE)
     image.add_layer(layer, 0)
     gimp.set_background((255, 255, 255))  # Set background color to white
     drawable = pdb.gimp_image_get_active_layer(image)
     pdb.gimp_drawable_fill(drawable, BACKGROUND_FILL)
 
-    draw_grid(drawable, gap_in_pixels, 0, gap_in_pixels, total_size)
-    draw_grid(drawable, total_size - gap_in_pixels, 0, total_size - gap_in_pixels, total_size)
-    draw_grid(drawable, 0, gap_in_pixels, total_size, gap_in_pixels)
-    draw_grid(drawable, 0, total_size - gap_in_pixels, total_size, total_size - gap_in_pixels)
+    draw_grid(drawable, gap_in_pixels_width, 0, gap_in_pixels_width, total_size_height)
+    draw_grid(drawable, total_size_width - gap_in_pixels_width, 0, total_size_width - gap_in_pixels_width, total_size_height)
+    draw_grid(drawable, 0, gap_in_pixels_height, total_size_width, gap_in_pixels_height)
+    draw_grid(drawable, 0, total_size_height - gap_in_pixels_height, total_size_width, total_size_height - gap_in_pixels_height)
 
      # Place the text at the center of each grid block
     centers = [
-        (gap_in_pixels / 2, gap_in_pixels / 2),           # Top-left square
-        (gap_in_pixels * 1.5, gap_in_pixels / 2),         # Top-middle square
-        (gap_in_pixels * 2.5, gap_in_pixels / 2),         # Top-right square
-        (gap_in_pixels / 2, gap_in_pixels * 1.5),         # Middle-left square
-        (gap_in_pixels * 1.5, gap_in_pixels * 1.5),       # Center square
-        (gap_in_pixels * 2.5, gap_in_pixels * 1.5),       # Middle-right square
-        (gap_in_pixels / 2, gap_in_pixels * 2.5),         # Bottom-left square
-        (gap_in_pixels * 1.5, gap_in_pixels * 2.5),       # Bottom-middle square
-        (gap_in_pixels * 2.5, gap_in_pixels * 2.5),       # Bottom-right square
+        (gap_in_pixels_width  / 2, gap_in_pixels_height  / 2),           # Top-left square
+        (gap_in_pixels_width  * 1.5, gap_in_pixels_height  / 2),         # Top-middle square
+        (gap_in_pixels_width  * 2.5, gap_in_pixels_height  / 2),         # Top-right square
+        (gap_in_pixels_width  / 2, gap_in_pixels_height  * 1.5),         # Middle-left square
+        (gap_in_pixels_width  * 1.5, gap_in_pixels_height  * 1.5),       # Center square
+        (gap_in_pixels_width  * 2.5, gap_in_pixels_height  * 1.5),       # Middle-right square
+        (gap_in_pixels_width  / 2, gap_in_pixels_height  * 2.5),         # Bottom-left square
+        (gap_in_pixels_width  * 1.5, gap_in_pixels_height  * 2.5),       # Bottom-middle square
+        (gap_in_pixels_width  * 2.5, gap_in_pixels_height  * 2.5),       # Bottom-right square
     ]
 
     for center in centers:
