@@ -48,6 +48,7 @@ def debug_object(obj):
         print(f"    In collection: {collection.name}")
     print(f"    Scale Factor (x,y,z): ({round(obj.scale.x, 2)}, {round(obj.scale.y, 2)}, {round(obj.scale.z, 2)})")
     print(f"    Dimensions (x,y,z): ({', '.join([f'{dimension:.2f}' for dimension in obj.dimensions])}) {SCENE_UNITS}")
+    print("\n")
    
 def merge_objects(collection):
     # Convert all objects in the collection to meshes
@@ -85,6 +86,22 @@ def center_object(obj):
         vertex.co -= center_of_mass
 
     return bpy.context.view_layer.objects.active
+
+def duplicate_object(obj):
+    bpy.ops.object.select_all(action='DESELECT')
+    obj.select_set(True)
+    bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'}, TRANSFORM_OT_translate={"value":(0, 0, 0)})
+    
+    # Get the newly duplicated object and deselect original object
+    duplicated_obj = bpy.context.view_layer.objects.active
+    obj.select_set(False)
+    
+    return duplicated_obj
+
+def set_origin_to_center(obj):
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.origin_set(type='ORIGIN_CENTER_OF_VOLUME', center='BOUNDS')
+
 
 def end(current_time):
     bpy.ops.export_mesh.stl(filepath="C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\output\\file.stl")
