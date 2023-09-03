@@ -194,7 +194,9 @@ def main():
         position_in_grid(image_obj, i, j)
 
         # utils.debug_object(image_obj)
-        print(f"Name: {image_obj.name}, X: {image_obj.location.x}, Y: {image_obj.location.y}")
+        # print(f"Name: {image_obj.name}, X: {image_obj.location.x}, Y: {image_obj.location.y}, Width: {image_obj.dimensions.x}, Height: {image_obj.dimensions.y}")
+        print(f"Width: {image_obj.dimensions.x}")
+        print(f"Height: {image_obj.dimensions.y}")
 
         # qr_objects.append(merged_object)
 

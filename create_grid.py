@@ -1,6 +1,9 @@
 from gimpfu import *
 import textwrap
 
+def mm_to_pixels(mm, dpi=300): # Using 300 DPI by default
+    return int(mm * dpi / 25.4)
+
 def draw_grid(layer, x1, y1, x2, y2):
     pdb.gimp_context_set_foreground((0, 0, 0))  # Set color to black
     pdb.gimp_paintbrush_default(layer, 4, [x1, y1, x2, y1])
@@ -12,13 +15,13 @@ def wrap_text(text, width):
     '''Wrap text to specified width.'''
     return textwrap.fill(text, width)
 
-def place_text(image, drawable, x, y, text):
+def place_text(image, x, y, text):
     # Set the font and size
     font_name = "Arial"
     font_size = 40  # Adjust this as needed
 
     # Wrap the text to fit the grid square
-    wrapped_text = wrap_text(text, 25)
+    wrapped_text = wrap_text(text, 15)
     text_layer = pdb.gimp_text_fontname(image, None, 0, 0, wrapped_text, 0, True, font_size, PIXELS, font_name)
 
     # Find out the width and height of the text layer
@@ -27,7 +30,7 @@ def place_text(image, drawable, x, y, text):
 
     # Calculate how much to translate the layer to position the text's center at (x,y)
     translate_x = x - text_width / 2
-    translate_y = y - text_height / 2  # Subtracting 10 pixels, adjust as necessary
+    translate_y = y - text_height / 2
 
     pdb.gimp_layer_translate(text_layer, translate_x, translate_y)
 
@@ -35,8 +38,11 @@ def place_text(image, drawable, x, y, text):
 
 def create_image():
 
-    gap_in_pixels_width = 500
-    gap_in_pixels_height = 400  # Different height for the grid cell
+    width_in_mm = 29
+    height_in_mm = 36
+    gap_in_pixels_width = mm_to_pixels(width_in_mm)
+    gap_in_pixels_height = mm_to_pixels(height_in_mm)
+
     total_size_width = gap_in_pixels_width * 3
     total_size_height = gap_in_pixels_height * 3
 
@@ -68,7 +74,7 @@ def create_image():
 
     for center in centers:
         x, y = center
-        place_text(image, drawable, x, y, "Text that will be centered in the grid.")
+        place_text(image, x, y, "STOP! Think before you scan!")
 
     # Display the image
     gimp.Display(image)
