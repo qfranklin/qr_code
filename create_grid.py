@@ -51,10 +51,6 @@ def create_image():
     draw_grid(drawable, 0, gap_in_pixels, total_size, gap_in_pixels)
     draw_grid(drawable, 0, total_size - gap_in_pixels, total_size, total_size - gap_in_pixels)
 
-    # Display the image
-    gimp.Display(image)
-    gimp.displays_flush()
-
      # Place the text at the center of each grid block
     centers = [
         (gap_in_pixels / 2, gap_in_pixels / 2),           # Top-left square
