@@ -6,3 +6,5 @@ package.json
 
 input/*
 output/*
+
+config.py

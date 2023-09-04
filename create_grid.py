@@ -38,13 +38,14 @@ def place_text(image, x, y, text):
 
 def create_image():
 
-    width_in_mm = 29
-    height_in_mm = 36
+    width_in_mm = 30
+    height_in_mm = 38
     gap_in_pixels_width = mm_to_pixels(width_in_mm)
     gap_in_pixels_height = mm_to_pixels(height_in_mm)
 
-    total_size_width = gap_in_pixels_width * 3
-    total_size_height = gap_in_pixels_height * 3
+    # Adjust total size for 4x4 grid
+    total_size_width = gap_in_pixels_width * 4
+    total_size_height = gap_in_pixels_height * 4
 
     # Create a new RGB image
     image = gimp.Image(total_size_width, total_size_height, RGB)
@@ -54,27 +55,19 @@ def create_image():
     drawable = pdb.gimp_image_get_active_layer(image)
     pdb.gimp_drawable_fill(drawable, BACKGROUND_FILL)
 
-    draw_grid(drawable, gap_in_pixels_width, 0, gap_in_pixels_width, total_size_height)
-    draw_grid(drawable, total_size_width - gap_in_pixels_width, 0, total_size_width - gap_in_pixels_width, total_size_height)
-    draw_grid(drawable, 0, gap_in_pixels_height, total_size_width, gap_in_pixels_height)
-    draw_grid(drawable, 0, total_size_height - gap_in_pixels_height, total_size_width, total_size_height - gap_in_pixels_height)
+    for i in range(1, 4):
+        draw_grid(drawable, i * gap_in_pixels_width, 0, i * gap_in_pixels_width, total_size_height)
+        draw_grid(drawable, 0, i * gap_in_pixels_height, total_size_width, i * gap_in_pixels_height)
 
-     # Place the text at the center of each grid block
-    centers = [
-        (gap_in_pixels_width  / 2, gap_in_pixels_height  / 2),           # Top-left square
-        (gap_in_pixels_width  * 1.5, gap_in_pixels_height  / 2),         # Top-middle square
-        (gap_in_pixels_width  * 2.5, gap_in_pixels_height  / 2),         # Top-right square
-        (gap_in_pixels_width  / 2, gap_in_pixels_height  * 1.5),         # Middle-left square
-        (gap_in_pixels_width  * 1.5, gap_in_pixels_height  * 1.5),       # Center square
-        (gap_in_pixels_width  * 2.5, gap_in_pixels_height  * 1.5),       # Middle-right square
-        (gap_in_pixels_width  / 2, gap_in_pixels_height  * 2.5),         # Bottom-left square
-        (gap_in_pixels_width  * 1.5, gap_in_pixels_height  * 2.5),       # Bottom-middle square
-        (gap_in_pixels_width  * 2.5, gap_in_pixels_height  * 2.5),       # Bottom-right square
-    ]
+
+    # Adjust centers for 4x4
+    centers = [(i * gap_in_pixels_width + gap_in_pixels_width / 2,
+                j * gap_in_pixels_height + gap_in_pixels_height / 2) 
+               for i in range(4) for j in range(4)]
 
     for center in centers:
         x, y = center
-        place_text(image, x, y, "STOP! Think before you scan!")
+        place_text(image, x, y, "")
 
     # Display the image
     gimp.Display(image)
