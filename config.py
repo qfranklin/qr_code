@@ -12,12 +12,12 @@ BASEPLATE_THICKNESS = .2
 
 TEXT_FILE_NAME = 'blockbit.ttf'
 INPUT_NAMES = [
-    "input_name"
+    "input_nmae"
 ];
 FONT_SIZE = 5
 TEXT_X_OFFSET = 4
 TEXT_Y_OFFSET = -1
 INVERT_QR_CODE = True
 
-REPEAT = 16
-REPEAT_FILENAME = "qrcode_1.svg"
+REPEAT = 2
+REPEAT_FILENAME = "qrcode.svg"

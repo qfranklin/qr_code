@@ -104,7 +104,7 @@ def set_origin_to_center(obj):
 
 
 def end(current_time):
-    bpy.ops.export_mesh.stl(filepath="C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\output\\file.stl")
+    bpy.ops.export_mesh.stl(filepath="C:\\Users\\qfran\\Desktop\\code\\qr_code\\output\\file.stl")
 
     # Calculate the elapsed time in milliseconds
     elapsed_time = round((datetime.datetime.now() - current_time).total_seconds(), 2)
