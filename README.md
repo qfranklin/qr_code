@@ -45,15 +45,15 @@ This will create a QR code SVG file for the URL "https://github.com/qfranklin/qr
 ```
 
 ```bash
- exec(open("C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\main.py").read())
-```
+ 
+```exec(open("C:\\Users\\qfran\\Desktop\\code\\qr_code\\main.py").read())
 
 This will create a 3D model from the SVG and save it as `file.stl` in the `output` directory.
 
 3. Create the grid
 
 ```bash
- "C:\Users\qfran\AppData\Local\Programs\GIMP 2\bin\gimp-2.10.exe" -i -b '(create_grid.py RUN-NONINTERACTIVE)' -b '(gimp-quit 0)'
+ "C:\Users\qfran\AppData\Local\Programs\GIMP 2\bin\gimp-2.10.exe" -idf -b "(create_grid.py RUN-NONINTERACTIVE)" -b "(gimp-quit 0)"
 ```
 
 Note: Please update the paths in the Python script according to your file system.
@@ -71,7 +71,7 @@ QR_CODE_THICKNESS = .3
 BASEPLATE_THICKNESS = .2
 QUIET_ZONE = 8
 FILE_NAME = 'qrcode_script.svg'
-SVG_FILE_PATHS = 'C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\input\\'+FILE_NAME
+SVG_FILE_PATHS = 'C:\\Users\\qfran\\Desktop\\code\\qr_code\\input\\'+FILE_NAME
 GRID_SIZE = 3
 INVERT_QR_CODE = True
 ```

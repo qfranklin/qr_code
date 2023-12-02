@@ -5,7 +5,7 @@ import sys
 import importlib
 
 # TODO: get this sensitive data into a secure file
-CURRENT_DIR = "C:\\Users\\qfran\\Desktop\\Blender\\code\\qr_code\\"
+CURRENT_DIR = "C:\\Users\\qfran\\Desktop\\code\\qr_code\\"
 
 # Add the path to your scripts to sys.path
 if CURRENT_DIR not in sys.path:
@@ -128,7 +128,7 @@ def create_qr_code(svg_file_path, index):
     else:
         input_string = config.INPUT_NAMES[index]
     
-    add_string(input_string, image_obj)
+    # add_string(input_string, image_obj)
 
     merged_object = utils.center_object(utils.merge_objects(collection))
     utils.solidify_object(False)
