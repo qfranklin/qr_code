@@ -3,6 +3,8 @@ import datetime
 import os
 import sys
 import importlib
+import qrcode
+import qrcode.image.svg
 
 # TODO: get this sensitive data into a secure file
 CURRENT_DIR = "C:\\Users\\qfran\\Desktop\\code\\qr_code\\"
@@ -16,57 +18,6 @@ import utils
 
 importlib.reload(config)
 importlib.reload(utils)
-  
-
-def import_image(svg_file_path):
-
-    print("import_image start")
-
-    # Get a set of current collections before importing
-    current_collections = set(bpy.data.collections.keys())
-
-    # Import the SVG file
-    bpy.ops.import_curve.svg(filepath=svg_file_path)
-
-    # Find the newly added collection
-    new_collections = set(bpy.data.collections.keys()) - current_collections
-    if not new_collections:
-        raise ValueError(f"Failed to import and find a new collection from SVG at {svg_file_path}")
-    collection = bpy.data.collections[new_collections.pop()]
-
-    # Delete the "Curve" object if present
-    curve_to_delete = bpy.data.objects.get("Curve")
-    if curve_to_delete:
-        bpy.ops.object.select_all(action='DESELECT')
-        curve_to_delete.select_set(True)
-        bpy.ops.object.delete()
-
-    # Set the 3D cursor to the origin
-    bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
-
-    # Select curves within the new collection
-    for obj in collection.objects:
-        if obj.type == 'CURVE':
-            obj.select_set(True)
-        else:
-            obj.select_set(False)
-
-    # Set active object to be the first selected curve to allow 'join' operator
-    bpy.context.view_layer.objects.active = next(obj for obj in collection.objects if obj.select_get())
-
-    # Join selected curves
-    bpy.ops.object.join()
-    bpy.ops.object.convert(target='MESH')
-
-    # Calculate and apply scale factor
-    scale_factor = config.QR_CODE_SIZE / max(bpy.context.view_layer.objects.active.dimensions)
-    bpy.context.view_layer.objects.active.scale = (scale_factor, scale_factor, scale_factor)
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-
-    print("import_image end")
-
-    # Return the joined curve object
-    return bpy.context.view_layer.objects.active
      
 def add_string(text, qr_code_obj):
 
@@ -119,70 +70,148 @@ def position_in_grid(obj, i, j):
     obj.location.x += offset_x
     obj.location.y += offset_y
 
-def create_qr_code(svg_file_path, index):
-    image_obj = import_image(svg_file_path)
+def create_qr_code(index):
+    
+    print("create_qr start")
 
-    collection = image_obj.users_collection[0]
+    # Create a QR code instance
+    qr = qrcode.QRCode(
+        version=1,  # Adjust version as needed
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+
+    print("INDEX: ", index)
+
+    # Add the data to the QR code
+    qr.add_data(config.INPUT_QR_STRINGS[index])
+    qr.make(fit=True)
+
+    # Create an SVG image factory
+    factory = qrcode.image.svg.SvgPathImage
+
+    # Generate the SVG QR code
+    svg_image = qr.make_image(image_factory=factory)
+
+    # CURRENT_DIR + "input\\"
+    # print("current directory: " + os.getcwd())
+    # print("saved file name: " + file_input_path)
+
+    # Save the SVG QR code to a file
+    with open(CURRENT_DIR + "input/qrcode.svg", "wb") as f:
+        svg_image.save(f)
+
+    print("saved svg")
+
+    # Get a set of current collections before importing
+    current_collections = set(bpy.data.collections.keys())
+
+    bpy.ops.import_curve.svg(filepath=CURRENT_DIR + "input\\qrcode.svg")
+
+    # Find the newly added collection
+    new_collections = set(bpy.data.collections.keys()) - current_collections
+    if not new_collections:
+        raise ValueError("Failed to import and find a new collection from SVG")
+    collection = bpy.data.collections[new_collections.pop()]
+
+    # Delete the "Curve" object if present
+    curve_to_delete = bpy.data.objects.get("Curve")
+    if curve_to_delete:
+        bpy.ops.object.select_all(action='DESELECT')
+        curve_to_delete.select_set(True)
+        bpy.ops.object.delete()
+
+    # Set the 3D cursor to the origin
+    bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
+
+    # Select curves within the new collection
+    for obj in collection.objects:
+        if obj.type == 'CURVE':
+            obj.select_set(True)
+        else:
+            obj.select_set(False)
+
+    # Set active object to be the first selected curve to allow 'join' operator
+    bpy.context.view_layer.objects.active = next(obj for obj in collection.objects if obj.select_get())
+
+    # Join selected curves
+    bpy.ops.object.join()
+    bpy.ops.object.convert(target='MESH')
+
+    # Calculate and apply scale factor
+    scale_factor = config.QR_CODE_SIZE / max(bpy.context.view_layer.objects.active.dimensions)
+    bpy.context.view_layer.objects.active.scale = (scale_factor, scale_factor, scale_factor)
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+
+    print("create_qr end")
+
+    qr_code = bpy.context.view_layer.objects.active
+
+    collection = qr_code.users_collection[0]
+
+    '''
     if(config.REPEAT):
         input_string = config.INPUT_NAMES[0]
     else:
         input_string = config.INPUT_NAMES[index]
     
-    # add_string(input_string, image_obj)
+    add_string(input_string, qr_code)
+    '''
 
     merged_object = utils.center_object(utils.merge_objects(collection))
     utils.solidify_object(False)
-    add_baseplate(image_obj)
+    add_baseplate(qr_code)
 
     merged_object = utils.center_object(utils.merge_objects(collection))
     bpy.context.view_layer.objects.active = merged_object
     bpy.ops.transform.rotate(value=3.14159, orient_axis='Y')
 
-    return image_obj
+    return qr_code
 
 def main():
 
     current_time = utils.start()
 
-    input_dir = CURRENT_DIR + "input\\"
-
-    qr_objects = []
-
+    '''
     if config.REPEAT:
         for index in range(config.REPEAT):
             qr_objects.append((index, config.REPEAT_FILENAME))
     else:
         # Filter out only the SVG files
-        svg_files = [f for f in os.listdir(input_dir) if f.endswith(".svg")]
+        svg_files = [f for f in os.listdir(CURRENT_DIR + "input\\") if f.endswith(".svg")]
         for index, svg_file in enumerate(svg_files):
             qr_objects.append((index, svg_file))
-    
+    '''
+
     # Calculate the grid size
-    grid_size = int(len(qr_objects)**0.5) + (1 if (len(qr_objects)**0.5) % 1 > 0 else 0)  # Ceiling of the square root
+    grid_size = int(len(config.INPUT_QR_STRINGS)**0.5) + (1 if (len(config.INPUT_QR_STRINGS)**0.5) % 1 > 0 else 0)  # Ceiling of the square root
 
     # Import image once before loop if REPEAT is set
     image_obj = None
     if config.REPEAT:
-        image_obj = create_qr_code(os.path.join(input_dir, config.REPEAT_FILENAME), 0)
+        print("REPEAT!!!!!!!!!!!!!")
+        image_obj = create_qr_code(0)
         utils.set_origin_to_center(image_obj)
         image_obj.location = (0, 0, 0)
 
-    for index, filename in qr_objects:
-
-        if config.REPEAT and index == 0:
-            continue
+    for index, input_string in enumerate(config.INPUT_QR_STRINGS):
 
         # print(f"{index} start loop {len(qr_objects)}")
 
         # print(f"Dimensions for QR code {index}: {image_obj.dimensions}")
 
         # Import image inside loop only if REPEAT is not set
+        image_obj = create_qr_code(index)
+
+        '''
         if not config.REPEAT:
-            image_obj = create_qr_code(os.path.join(input_dir, filename), index)
+            image_obj = create_qr_code(index)
         else: 
             image_obj = utils.duplicate_object(image_obj)
             utils.set_origin_to_center(image_obj)
-        
+        '''
+
         # utils.debug_object(image_obj)
 
         image_obj.location = (0, 0, 0)

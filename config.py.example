@@ -5,7 +5,7 @@ SCENE_UNITS = 'MILLIMETERS'
 
 QR_CODE_SIZE = 25
 QR_SPACING = 0
-QR_CODE_THICKNESS = .2
+QR_CODE_THICKNESS = .4
 QUIET_ZONE = 5
 
 BASEPLATE_THICKNESS = .2
@@ -13,11 +13,15 @@ BASEPLATE_THICKNESS = .2
 TEXT_FILE_NAME = 'blockbit.ttf'
 INPUT_NAMES = [
     "input_nmae"
-];
+]
+
+INPUT_QR_STRING = [
+    "apple", 
+    "banana", 
+    "cherry"
+]
+
 FONT_SIZE = 5
 TEXT_X_OFFSET = 4
 TEXT_Y_OFFSET = -1
 INVERT_QR_CODE = True
-
-REPEAT = 2
-REPEAT_FILENAME = "qrcode.svg"
