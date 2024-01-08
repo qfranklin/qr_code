@@ -173,17 +173,6 @@ def main():
 
     current_time = utils.start()
 
-    '''
-    if config.REPEAT:
-        for index in range(config.REPEAT):
-            qr_objects.append((index, config.REPEAT_FILENAME))
-    else:
-        # Filter out only the SVG files
-        svg_files = [f for f in os.listdir(CURRENT_DIR + "input\\") if f.endswith(".svg")]
-        for index, svg_file in enumerate(svg_files):
-            qr_objects.append((index, svg_file))
-    '''
-
     # Calculate the grid size
     grid_size = int(len(config.INPUT_QR_STRINGS)**0.5) + (1 if (len(config.INPUT_QR_STRINGS)**0.5) % 1 > 0 else 0)  # Ceiling of the square root
 

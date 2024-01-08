@@ -1,27 +1,28 @@
-# Constants
-SCALE = 1
-SCENE_SYSTEM = 'METRIC'
-SCENE_UNITS = 'MILLIMETERS'
+SCALE = 1 # The unit scale of the 3D scene.
+SCENE_SYSTEM = 'METRIC' #  The unit system of the 3D scene (e.g., 'METRIC' or 'IMPERIAL').
+SCENE_UNITS = 'MILLIMETERS' # The length unit of the 3D scene (e.g., 'MILLIMETERS' or 'INCHES').
 
-QR_CODE_SIZE = 25
+QR_CODE_SIZE = 25 # Size of the 
 QR_SPACING = 0
-QR_CODE_THICKNESS = .4
+QR_CODE_THICKNESS = .4 # The thickness of the QR code in the 3D model.
 QUIET_ZONE = 5
 
-BASEPLATE_THICKNESS = .2
+BASEPLATE_THICKNESS = .2 # The thickness of the base plate in the 3D model.
 
-TEXT_FILE_NAME = 'blockbit.ttf'
-INPUT_NAMES = [
-    "input_nmae"
-]
+TEXT_FILE_NAME = 'blockbit.ttf' # Font file for adding text above QR Code
+INPUT_NAMES = [ "input_nmae" ] # Title that will appear above the QR Code
 
-INPUT_QR_STRING = [
+# Strings to be encoded in the QR Codes
+INPUT_QR_STRINGS = [
     "apple", 
     "banana", 
     "cherry"
 ]
 
+# How many times to repeat the INPUT_QR_STRINGS
+REPEAT = 0
+
 FONT_SIZE = 5
 TEXT_X_OFFSET = 4
 TEXT_Y_OFFSET = -1
-INVERT_QR_CODE = True
+INVERT_QR_CODE = True # Whether to invert the QR code in the 3D model. 
