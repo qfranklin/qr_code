@@ -16,12 +16,13 @@ def start():
     print("Current Date and Time:", current_time)
     print("======================================================")
 
-    dimension_check()
-    clear_scene()
-
-    return current_time
-
-def clear_scene():
+    # Notify user of current dimensions. Should be in millimeters.
+    scene = bpy.context.scene
+    print("Unit Scale:", setattr(scene.unit_settings, 'scale_length', SCALE) or scene.unit_settings.scale_length)
+    print("Length Unit:", setattr(scene.unit_settings, 'length_unit', SCENE_UNITS) or scene.unit_settings.length_unit)
+    print("Unit System:", setattr(scene.unit_settings, 'system', SCENE_SYSTEM) or scene.unit_settings.system, "\n")
+    
+    # Remove everything from the scene
     if bpy.context.object and bpy.context.object.mode != 'OBJECT':
         bpy.ops.object.mode_set(mode='OBJECT')
         
@@ -36,12 +37,9 @@ def clear_scene():
         #print('Deleting collection:',collection.name)
         bpy.data.collections.remove(collection)
 
-def dimension_check():
-    scene = bpy.context.scene
-    print("Unit Scale:", setattr(scene.unit_settings, 'scale_length', SCALE) or scene.unit_settings.scale_length)
-    print("Length Unit:", setattr(scene.unit_settings, 'length_unit', SCENE_UNITS) or scene.unit_settings.length_unit)
-    print("Unit System:", setattr(scene.unit_settings, 'system', SCENE_SYSTEM) or scene.unit_settings.system, "\n")
+    return current_time
 
+# Helper function for objects
 def debug_object(obj):
     print(f"    Name: {obj.name}")
     for collection in obj.users_collection:
@@ -111,6 +109,3 @@ def end(current_time):
     print("\n======================================================")
     print("Run Time:", elapsed_time, "seconds")
     print("======================================================\n")
-
-    #print(f"Memory used during script execution: {memory_used} bytes")
-  

@@ -19,14 +19,7 @@ This project creates a 3D model of a QR code by combining a JavaScript and Pytho
 git clone https://github.com/qfranklin/qr_code.git
 ```
 
-2. Install Node.js dependencies:
-
-```bash
-cd qr_code
-npm install
-```
-
-3. (Optional) If you want to use the VSCode Blender extension for development, install it from the [VSCode marketplace](https://marketplace.visualstudio.com/items?itemName=JacquesLucke.blender-development).
+2. (Optional) If you want to use the VSCode Blender extension for development, install it from the [VSCode marketplace](https://marketplace.visualstudio.com/items?itemName=JacquesLucke.blender-development).
 
 ## Usage
 
@@ -45,8 +38,8 @@ This will create a QR code SVG file for the URL "https://github.com/qfranklin/qr
 ```
 
 ```bash
- 
-```exec(open("C:\\Users\\qfran\\Desktop\\code\\qr_code\\main.py").read())
+ exec(open("C:\\Users\\qfran\\Desktop\\code\\qr_code\\main.py").read())
+```
 
 This will create a 3D model from the SVG and save it as `file.stl` in the `output` directory.
 
@@ -57,36 +50,6 @@ This will create a 3D model from the SVG and save it as `file.stl` in the `outpu
 ```
 
 Note: Please update the paths in the Python script according to your file system.
-
-## Configuration
-
-You can change the configuration of the QR code and 3D model by modifying the variables at the top of `main.py`.
-
-```python
-SCALE = 1
-SIZE = 35
-SCENE_SYSTEM = 'METRIC'
-SCENE_UNITS = 'MILLIMETERS'
-QR_CODE_THICKNESS = .3
-BASEPLATE_THICKNESS = .2
-QUIET_ZONE = 8
-FILE_NAME = 'qrcode_script.svg'
-SVG_FILE_PATHS = 'C:\\Users\\qfran\\Desktop\\code\\qr_code\\input\\'+FILE_NAME
-GRID_SIZE = 3
-INVERT_QR_CODE = True
-```
-
-- `SCALE`: The unit scale of the 3D scene.
-- `SIZE`: The size of the 3D QR code.
-- `SCENE_SYSTEM`: The unit system of the 3D scene (e.g., 'METRIC' or 'IMPERIAL').
-- `SCENE_UNITS`: The length unit of the 3D scene (e.g., 'MILLIMETERS' or 'INCHES').
-- `QR_CODE_THICKNESS`: The thickness of the QR code in the 3D model.
-- `BASEPLATE_THICKNESS`: The thickness of the base plate in the 3D model.
-- `QUIET_ZONE`: The size of the quiet zone around the QR code in the 3D model.
-- `FILE_NAME`: The filename of the SVG file created by the Node.js script.
-- `SVG_FILE_PATHS`: The path to the SVG file created by the Node.js script.
-- `GRID_SIZE`: The size of the grid in the 3D scene.
-- `INVERT_QR_CODE`: Whether to invert the QR code in the 3D model.
 
 ## Contributing
 
