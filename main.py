@@ -71,6 +71,10 @@ for index, input_string in enumerate(config.INPUT_QR_STRINGS):
     # Set the 3D cursor to the origin
     bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
 
+    # Select curves within the new collection
+    for obj in collection.objects:
+        obj.select_set(True)
+
     # Set active object to be the first selected curve to allow 'join' operator
     bpy.context.view_layer.objects.active = next(obj for obj in collection.objects if obj.select_get())
 
