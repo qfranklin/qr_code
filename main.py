@@ -1,3 +1,4 @@
+import math
 import bpy
 import datetime
 import os
@@ -48,8 +49,6 @@ for index, input_string in enumerate(config.INPUT_QR_STRINGS):
     with open(CURRENT_DIR + "input/qrcode.svg", "wb") as f:
         svg_image.save(f)
 
-    print("saved svg")
-
     # Get a set of current collections before importing
     current_collections = set(bpy.data.collections.keys())
 
@@ -60,13 +59,6 @@ for index, input_string in enumerate(config.INPUT_QR_STRINGS):
     if not new_collections:
         raise ValueError("Failed to import and find a new collection from SVG")
     collection = bpy.data.collections[new_collections.pop()]
-
-    # Delete the "Curve" object if present
-    curve_to_delete = bpy.data.objects.get("Curve")
-    if curve_to_delete:
-        bpy.ops.object.select_all(action='DESELECT')
-        curve_to_delete.select_set(True)
-        bpy.ops.object.delete()
 
     # Set the 3D cursor to the origin
     bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
@@ -87,21 +79,19 @@ for index, input_string in enumerate(config.INPUT_QR_STRINGS):
     bpy.context.view_layer.objects.active.scale = (scale_factor, scale_factor, scale_factor)
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 
-    print("create_qr end")
-
     image_obj = bpy.context.view_layer.objects.active
 
     collection = image_obj.users_collection[0]
 
     merged_object = utils.center_object(utils.merge_objects(collection))
-    utils.solidify_object(False)
+    utils.solidify_object(not config.INVERT_QR_CODE)
 
     # Add baseplate to qr code
     bpy.ops.mesh.primitive_plane_add(size=1, enter_editmode=False, location=(0, 0, 0))
     bpy.context.active_object.dimensions = (image_obj.dimensions.x + config.QUIET_ZONE, image_obj.dimensions.y + config.QUIET_ZONE, 1)
     image_obj.users_collection[0].objects.link(bpy.context.active_object)
     bpy.context.collection.objects.unlink(bpy.context.active_object)
-    utils.solidify_object(True)
+    utils.solidify_object(config.INVERT_QR_CODE)
 
     merged_object = utils.center_object(utils.merge_objects(collection))
     bpy.context.view_layer.objects.active = merged_object
@@ -119,6 +109,8 @@ for index, input_string in enumerate(config.INPUT_QR_STRINGS):
     image_obj.location.x += offset_x
     image_obj.location.y += offset_y
 
+    if(not config.INVERT_QR_CODE):
+        image_obj.rotation_euler.y += math.radians(180)
 
     print(f"Width: {image_obj.dimensions.x}")
     print(f"Height: {image_obj.dimensions.y}")
