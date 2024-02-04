@@ -120,9 +120,13 @@ for index, input_string in enumerate(config.INPUT_QR_STRINGS):
     # Add micro sd card holder
     bpy.ops.import_mesh.stl(filepath = CURRENT_DIR + "input/sd_card.stl")
 
-    bpy.context.active_object.rotation_euler.z = math.radians(180)
-    bpy.context.active_object.location.x = -(config.QR_CODE_SIZE / 1.7)
-    bpy.context.active_object.location.y = -(config.QR_CODE_SIZE / 1.75)
+    #bpy.context.active_object.rotation_euler.z = math.radians(180)
+    bpy.context.active_object.location.x = config.QR_CODE_SIZE - 16.5
+    bpy.context.active_object.location.y = -(config.QR_CODE_SIZE - 2)
+    bpy.context.active_object.location.z = .1
+
+
+    
 
 # Select all the QR code objects
 '''
