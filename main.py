@@ -109,11 +109,20 @@ for index, input_string in enumerate(config.INPUT_QR_STRINGS):
     image_obj.location.x += offset_x
     image_obj.location.y += offset_y
 
+    image_obj.location = (0, 0, config.QR_CODE_THICKNESS + config.BASEPLATE_THICKNESS)
+
     if(not config.INVERT_QR_CODE):
         image_obj.rotation_euler.y += math.radians(180)
 
     print(f"Width: {image_obj.dimensions.x}")
     print(f"Height: {image_obj.dimensions.y}")
+
+    # Add micro sd card holder
+    bpy.ops.import_mesh.stl(filepath = CURRENT_DIR + "input/sd_card.stl")
+
+    bpy.context.active_object.rotation_euler.z = math.radians(180)
+    bpy.context.active_object.location.x = -(config.QR_CODE_SIZE / 1.7)
+    bpy.context.active_object.location.y = -(config.QR_CODE_SIZE / 1.75)
 
 # Select all the QR code objects
 '''
