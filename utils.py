@@ -65,9 +65,9 @@ def merge_objects(collection):
 
     return bpy.context.view_layer.objects.active
 
-def solidify_object(invert_code):
+def solidify_object(invert_code, thickness):
     bpy.ops.object.modifier_add(type='SOLIDIFY')
-    bpy.context.object.modifiers["Solidify"].thickness = QR_CODE_THICKNESS 
+    bpy.context.object.modifiers["Solidify"].thickness = thickness 
 
     if invert_code:
         bpy.context.object.modifiers["Solidify"].offset = 1

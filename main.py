@@ -84,14 +84,14 @@ for index, input_string in enumerate(config.INPUT_QR_STRINGS):
     collection = image_obj.users_collection[0]
 
     merged_object = utils.center_object(utils.merge_objects(collection))
-    utils.solidify_object(not config.INVERT_QR_CODE)
+    utils.solidify_object(not config.INVERT_QR_CODE, config.QR_CODE_THICKNESS)
 
     # Add baseplate to qr code
     bpy.ops.mesh.primitive_plane_add(size=1, enter_editmode=False, location=(0, 0, 0))
     bpy.context.active_object.dimensions = (image_obj.dimensions.x + config.QUIET_ZONE, image_obj.dimensions.y + config.QUIET_ZONE, 1)
     image_obj.users_collection[0].objects.link(bpy.context.active_object)
     bpy.context.collection.objects.unlink(bpy.context.active_object)
-    utils.solidify_object(config.INVERT_QR_CODE)
+    utils.solidify_object(config.INVERT_QR_CODE, config.BASEPLATE_THICKNESS)
 
     merged_object = utils.center_object(utils.merge_objects(collection))
     bpy.context.view_layer.objects.active = merged_object
@@ -109,11 +109,20 @@ for index, input_string in enumerate(config.INPUT_QR_STRINGS):
     image_obj.location.x += offset_x
     image_obj.location.y += offset_y
 
+    image_obj.location = (0, 0, config.QR_CODE_THICKNESS + config.BASEPLATE_THICKNESS)
+
     if(not config.INVERT_QR_CODE):
         image_obj.rotation_euler.y += math.radians(180)
 
     print(f"Width: {image_obj.dimensions.x}")
     print(f"Height: {image_obj.dimensions.y}")
+
+    # Add micro sd card holder
+    bpy.ops.import_mesh.stl(filepath = CURRENT_DIR + "input/sd_card.stl")
+
+    bpy.context.active_object.rotation_euler.z = math.radians(180)
+    bpy.context.active_object.location.x = -(config.QR_CODE_SIZE / 1.7)
+    bpy.context.active_object.location.y = -(config.QR_CODE_SIZE / 1.75)
 
 # Select all the QR code objects
 '''
