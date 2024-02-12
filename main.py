@@ -45,7 +45,7 @@ for index, input_string in enumerate(config.INPUT_QR_STRINGS):
     # Generate the SVG QR code
     svg_image = qr.make_image(image_factory=factory)
 
-    # Save the SVG QR code to a file
+    # Create the svg file
     with open(CURRENT_DIR + "input/qrcode.svg", "wb") as f:
         svg_image.save(f)
 
@@ -54,24 +54,16 @@ for index, input_string in enumerate(config.INPUT_QR_STRINGS):
 
     bpy.ops.import_curve.svg(filepath=CURRENT_DIR + "input\\qrcode.svg")
 
-    # Find the newly added collection
-    new_collections = set(bpy.data.collections.keys()) - current_collections
-    if not new_collections:
-        raise ValueError("Failed to import and find a new collection from SVG")
-    collection = bpy.data.collections[new_collections.pop()]
+    # Copy the svg object from the collection to the scene
+    qrcode_collection = bpy.data.collections.get("qrcode.svg")
+    qrcode_object = qrcode_collection.objects[0]
+    bpy.context.scene.collection.objects.link(qrcode_object)
 
-    # Set the 3D cursor to the origin
-    bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
+    # Delete the collection
+    bpy.data.collections.remove(qrcode_collection)
 
-    # Select curves within the new collection
-    for obj in collection.objects:
-        obj.select_set(True)
-
-    # Set active object to be the first selected curve to allow 'join' operator
-    bpy.context.view_layer.objects.active = next(obj for obj in collection.objects if obj.select_get())
-
-    # Join selected curves
-    bpy.ops.object.join()
+    qrcode_object.select_set(True)
+    bpy.context.view_layer.objects.active = qrcode_object
     bpy.ops.object.convert(target='MESH')
 
     # Calculate and apply scale factor
@@ -89,8 +81,7 @@ for index, input_string in enumerate(config.INPUT_QR_STRINGS):
     # Add baseplate to qr code
     bpy.ops.mesh.primitive_plane_add(size=1, enter_editmode=False, location=(0, 0, 0))
     bpy.context.active_object.dimensions = (image_obj.dimensions.x + config.QUIET_ZONE, image_obj.dimensions.y + config.QUIET_ZONE, 1)
-    image_obj.users_collection[0].objects.link(bpy.context.active_object)
-    bpy.context.collection.objects.unlink(bpy.context.active_object)
+
     utils.solidify_object(config.INVERT_QR_CODE, config.BASEPLATE_THICKNESS)
 
     merged_object = utils.center_object(utils.merge_objects(collection))
@@ -117,12 +108,50 @@ for index, input_string in enumerate(config.INPUT_QR_STRINGS):
     print(f"Width: {image_obj.dimensions.x}")
     print(f"Height: {image_obj.dimensions.y}")
 
-    # Add micro sd card holder
-    bpy.ops.import_mesh.stl(filepath = CURRENT_DIR + "input/sd_card.stl")
+    if config.ADD_SD_CARD:
+        # Import the pre built sd card stl file
+        bpy.ops.import_mesh.stl(filepath = CURRENT_DIR + "input/sd_card.stl")
 
-    bpy.context.active_object.rotation_euler.z = math.radians(180)
-    bpy.context.active_object.location.x = -(config.QR_CODE_SIZE / 1.7)
-    bpy.context.active_object.location.y = -(config.QR_CODE_SIZE / 1.75)
+        sd_card = bpy.context.active_object
+
+        sd_card.location.x = config.QR_CODE_SIZE - 16.5
+        sd_card.location.y = -(config.QR_CODE_SIZE - 2)
+        sd_card.location.z = .1
+
+        # Add footer plate
+        bpy.ops.mesh.primitive_plane_add(size=1, enter_editmode=False, location=(-9.5, -30.55, .1))
+        footer_plate = bpy.context.active_object
+        footer_plate.dimensions = (28, 14.7, 1)
+        # image_obj.users_collection[0].objects.link(footer_plate)
+        # bpy.context.collection.objects.unlink(footer_plate)
+        utils.solidify_object(not config.INVERT_QR_CODE, config.BASEPLATE_THICKNESS)
+
+        bpy.ops.object.select_all(action='DESELECT')
+
+        font_curve = bpy.data.curves.new(type="FONT", name="Font Curve")
+        font_curve.body = config.INPUT_NAMES[index]
+        font_curve.font = bpy.data.fonts.load(CURRENT_DIR + "input/blockbit.ttf")
+        font_obj = bpy.data.objects.new(name="Font Object", object_data=font_curve)
+
+        bpy.context.scene.collection.objects.link(font_obj)
+
+        font_obj.select_set(True)
+        bpy.context.view_layer.objects.active = font_obj
+
+        font_obj.location = (footer_plate.location.x * 2, footer_plate.location.y * 1.2, footer_plate.location.z + 0.1)
+
+        font_obj.dimensions = (footer_plate.dimensions[0] * .7, footer_plate.dimensions[1] * .7, 0.1)
+
+        bpy.ops.object.convert(target='MESH')
+
+        utils.solidify_object(not config.INVERT_QR_CODE, config.BASEPLATE_THICKNESS)
+
+        bpy.ops.object.select_all(action='SELECT')
+
+        # Rotate the whole structure 180 degrees along the z axis.
+        # The sd card bottom hole prints better this way because the first ring has time to cool before applying the full layer. 
+        bpy.ops.transform.rotate(value=3.14159, orient_axis='Z')
+
 
 # Select all the QR code objects
 '''
