@@ -108,40 +108,49 @@ for index, input_string in enumerate(config.INPUT_QR_STRINGS):
     print(f"Width: {image_obj.dimensions.x}")
     print(f"Height: {image_obj.dimensions.y}")
 
-    # Add micro sd card holder
-    bpy.ops.import_mesh.stl(filepath = CURRENT_DIR + "input/sd_card.stl")
+    if config.ADD_SD_CARD:
+        # Import the pre built sd card stl file
+        bpy.ops.import_mesh.stl(filepath = CURRENT_DIR + "input/sd_card.stl")
 
-    sd_card = bpy.context.active_object
+        sd_card = bpy.context.active_object
 
-    sd_card.location.x = config.QR_CODE_SIZE - 16.5
-    sd_card.location.y = -(config.QR_CODE_SIZE - 2)
-    sd_card.location.z = .1
+        sd_card.location.x = config.QR_CODE_SIZE - 16.5
+        sd_card.location.y = -(config.QR_CODE_SIZE - 2)
+        sd_card.location.z = .1
 
-    # Add footer plate
-    bpy.ops.mesh.primitive_plane_add(size=1, enter_editmode=False, location=(-9.5, -30.55, .1))
-    footer_plate = bpy.context.active_object
-    footer_plate.dimensions = (28, 14.7, 1)
-    # image_obj.users_collection[0].objects.link(footer_plate)
-    # bpy.context.collection.objects.unlink(footer_plate)
-    utils.solidify_object(not config.INVERT_QR_CODE, config.BASEPLATE_THICKNESS)
+        # Add footer plate
+        bpy.ops.mesh.primitive_plane_add(size=1, enter_editmode=False, location=(-9.5, -30.55, .1))
+        footer_plate = bpy.context.active_object
+        footer_plate.dimensions = (28, 14.7, 1)
+        # image_obj.users_collection[0].objects.link(footer_plate)
+        # bpy.context.collection.objects.unlink(footer_plate)
+        utils.solidify_object(not config.INVERT_QR_CODE, config.BASEPLATE_THICKNESS)
 
+        bpy.ops.object.select_all(action='DESELECT')
 
-    font_curve = bpy.data.curves.new(type="FONT", name="Font Curve")
-    font_curve.body = "MOM"
-    font_curve.font = bpy.data.fonts.load(CURRENT_DIR + "input/blockbit.ttf")
-    font_obj = bpy.data.objects.new(name="Font Object", object_data=font_curve)
+        font_curve = bpy.data.curves.new(type="FONT", name="Font Curve")
+        font_curve.body = config.INPUT_NAMES[index]
+        font_curve.font = bpy.data.fonts.load(CURRENT_DIR + "input/blockbit.ttf")
+        font_obj = bpy.data.objects.new(name="Font Object", object_data=font_curve)
 
-    bpy.context.scene.collection.objects.link(font_obj)
+        bpy.context.scene.collection.objects.link(font_obj)
 
-    font_obj.select_set(True)
+        font_obj.select_set(True)
+        bpy.context.view_layer.objects.active = font_obj
 
-    font_obj.location = (footer_plate.location.x, footer_plate.location.y, footer_plate.location.z + 0.1)
+        font_obj.location = (footer_plate.location.x * 2, footer_plate.location.y * 1.2, footer_plate.location.z + 0.1)
 
-    bpy.ops.object.convert(target='MESH')
+        font_obj.dimensions = (footer_plate.dimensions[0] * .7, footer_plate.dimensions[1] * .7, 0.1)
 
-    # bpy.context.view_layer.objects.active = font_obj
+        bpy.ops.object.convert(target='MESH')
 
-    # utils.solidify_object(config.INVERT_QR_CODE, 5)
+        utils.solidify_object(not config.INVERT_QR_CODE, config.BASEPLATE_THICKNESS)
+
+        bpy.ops.object.select_all(action='SELECT')
+
+        # Rotate the whole structure 180 degrees along the z axis.
+        # The sd card bottom hole prints better this way because the first ring has time to cool before applying the full layer. 
+        bpy.ops.transform.rotate(value=3.14159, orient_axis='Z')
 
 
 # Select all the QR code objects
